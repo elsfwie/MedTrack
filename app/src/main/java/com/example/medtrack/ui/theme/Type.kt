@@ -81,6 +81,12 @@ val Typography = Typography(
     bodyMedium = TextStyle(
         fontFamily = InterFontFamily,
         fontWeight = FontWeight.Normal,
+        fontSize = 20.sp
+    ),
+
+    bodySmall = TextStyle(
+        fontFamily = InterFontFamily,
+        fontWeight = FontWeight.Normal,
         fontSize = 14.sp
     ),
 
