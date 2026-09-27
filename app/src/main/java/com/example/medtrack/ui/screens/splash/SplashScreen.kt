@@ -2,13 +2,16 @@ package com.example.medtrack.ui.screens.splash
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,37 +25,59 @@ import com.example.medtrack.ui.theme.MedTrackTheme
 
 @Composable
 fun SplashScreen() {
-    // menambilkan logo dan teks MedTrack bersebelahan
-    Row(
+    // menambilkan logo dan teks MedTrack atas bawah
+    Column(
         modifier = Modifier
             .fillMaxSize() //ambil seluruh layar
-            .background(
-                MaterialTheme.colorScheme.secondary //bg light sage
-            ),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+            .background(MaterialTheme.colorScheme.background)
+            .padding(top = 120.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+        //verticalArrangement = Arrangement.spacedBy(0.dp)
     ) {
 
-        // menyesuaikan logo MedTrack
+        // logo MedTrack
         Image(
             painter = painterResource(
                 id = R.drawable.logo
             ),
             contentDescription = "MedTrack Logo",
-            modifier = Modifier.size(150.dp)
+            modifier = Modifier.size(200.dp)
         )
 
         // tulisan MedTrack
         Text(
             text = "MedTrack",
             style = MaterialTheme.typography.headlineLarge,
-            color = MaterialTheme.colorScheme.tertiary, // warna logo
-            modifier = Modifier.offset(x = (-16).dp) // mengurangi jarak logo dan tulisan
+            color = MaterialTheme.colorScheme.tertiary,
+            modifier = Modifier.offset(y = (-15).dp) // mengurangi jarak logo dan tulisan
         )
+
+        Spacer(
+            modifier = Modifier.height(200.dp)
+        )
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .padding(top = 120.dp, start = 30.dp, end = 30.dp)
+                .fillMaxWidth()
+                .height(70.dp)
+
+                .background(
+                    color = MaterialTheme.colorScheme.primary,
+                    shape = RoundedCornerShape(20.dp)
+                ),
+
+        ) {
+            Text(
+                text = "Get Started",
+                color = MaterialTheme.colorScheme.background,
+                style = MaterialTheme.typography.headlineMedium,
+            )
+        }
     }
 }
 
-@Preview
+@Preview (showBackground = true, showSystemUi = true)
 @Composable
 fun SplashPreview() {
     MedTrackTheme {

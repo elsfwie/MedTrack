@@ -14,8 +14,7 @@ import com.example.medtrack.R
 
 @Composable
 fun BackButton(
-    modifier: Modifier = Modifier
-        .padding(start = 16.dp),
+    modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null
 ) {
     Box(
