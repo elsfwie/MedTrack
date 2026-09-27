@@ -34,14 +34,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,7 +51,12 @@ private val ErrorColor = Color(0xFFFF0000)
 private val BorderColor = Color(0xFF95AAAA)
 
 @Composable
-fun CaregiverLoginScreen() {
+fun CaregiverSignUpScreen(
+    onBackClick: () -> Unit = {},
+    onLoginClick: () -> Unit = {},
+    onGoogleClick: () -> Unit = {},
+    onSignUpClick: () -> Unit = {}
+) {
 
     var email by remember {
         mutableStateOf("")
@@ -64,32 +66,51 @@ fun CaregiverLoginScreen() {
         mutableStateOf("")
     }
 
+    var confirmPassword by remember {
+        mutableStateOf("")
+    }
+
     var passwordVisible by remember {
         mutableStateOf(false)
     }
 
-    var showError by remember {
+    var confirmPasswordVisible by remember {
         mutableStateOf(false)
+    }
+
+    var passwordError by remember {
+        mutableStateOf<String?>(null)
     }
 
     var emailError by remember {
         mutableStateOf<String?>(null)
     }
 
-    // awalnya dianggap valid untuk sementara, nanti diubah setelah konek ke database
-    fun validateLogin() {
-        val isValidEmail =
-            email.trim().lowercase().endsWith("@gmail.com") &&
-                    email.substringBefore("@gmail.com").isNotBlank()
+    // cek gmail
+    fun validateEmail() {
+        val trimmedEmail = email.trim().lowercase()
+        val isValid = trimmedEmail.endsWith("@gmail.com") &&
+                trimmedEmail.substringBefore("@gmail.com").isNotBlank()
 
-        emailError = if (!isValidEmail) {
+        emailError = if (!isValid) {
             "Please enter a valid email address."
         } else {
             null
         }
+    }
 
-        val validPassword = password.isNotBlank()
-        showError = !(isValidEmail && validPassword)
+    fun validateSignUp() {
+        validateEmail()
+        passwordError = when {
+
+            password.length < 8 -> "Password must be at least 8 characters."
+            password != confirmPassword -> "Password do not match."
+            else -> null
+        }
+
+        if (emailError == null && passwordError == null) {
+            onSignUpClick()
+        }
     }
 
     Column(
@@ -105,41 +126,43 @@ fun CaregiverLoginScreen() {
             modifier = Modifier.height(28.dp)
         )
 
-        // menampilkan arrow back button
-        BackButton (
-            onClick = {
-                // Belum dihubungkan ke navigation
-            }
+        // back arrow button
+        BackButton(
+            onClick = onBackClick
         )
 
         Spacer(
             modifier = Modifier.height(62.dp)
         )
 
-        // login text
+        // text create account
         Text(
-            text = "Login",
+            text = "Create Account",
             fontSize = 36.sp,
             fontWeight = FontWeight.Bold,
             color = Color.Black,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
+            modifier = Modifier.align(
+                Alignment.CenterHorizontally
+            )
         )
 
         Spacer(
             modifier = Modifier.height(50.dp)
         )
 
-        // box email
+        // email box
         TextField(
             value = email,
             onValueChange = {
                 email = it
-                // error hilang ketika user mulai memperbaiki input
+                // reset error email saat diketik ulang
                 if (emailError != null) emailError = null
             },
+
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
+
             placeholder = {
                 Text(
                     text = "Email",
@@ -147,6 +170,7 @@ fun CaregiverLoginScreen() {
                     fontSize = 18.sp
                 )
             },
+
             leadingIcon = {
                 Image(
                     painter = painterResource(
@@ -156,8 +180,11 @@ fun CaregiverLoginScreen() {
                     modifier = Modifier.size(27.dp)
                 )
             },
+
             singleLine = true,
-            shape = RoundedCornerShape(8.dp),
+
+            shape = RoundedCornerShape(10.dp),
+
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.secondary,
                 unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
@@ -171,6 +198,7 @@ fun CaregiverLoginScreen() {
                 focusedTextColor = Color.Black,
                 unfocusedTextColor = Color.Black
             ),
+
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
@@ -191,16 +219,19 @@ fun CaregiverLoginScreen() {
             modifier = Modifier.height(8.dp)
         )
 
-        // box password
+        // password box
         TextField(
             value = password,
+
             onValueChange = {
                 password = it
 
-                if (showError) {
-                    showError = false
+                // error hilang ketika user mulai memperbaiki input
+                if (passwordError != null) {
+                    passwordError = null
                 }
             },
+
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
@@ -213,7 +244,6 @@ fun CaregiverLoginScreen() {
                 )
             },
 
-            // icon key sebelah kiri
             leadingIcon = {
                 Image(
                     painter = painterResource(
@@ -224,7 +254,6 @@ fun CaregiverLoginScreen() {
                 )
             },
 
-            // icon eye sebelah kanan
             trailingIcon = {
                 Image(
                     painter = painterResource(
@@ -234,11 +263,13 @@ fun CaregiverLoginScreen() {
                             R.drawable.not_visible
                         }
                     ),
-                    contentDescription = if (passwordVisible) {
-                        "Hide password"
-                    } else {
-                        "Show password"
-                    },
+                    contentDescription =
+                        if (passwordVisible) {
+                            "Hide password"
+                        } else {
+                            "Show password"
+                        },
+
                     modifier = Modifier
                         .size(25.dp)
                         .clickable {
@@ -249,14 +280,109 @@ fun CaregiverLoginScreen() {
 
             singleLine = true,
 
-            // menentukan password ditampilkan / disembunyikan
-            visualTransformation = if (passwordVisible) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
+            visualTransformation =
+                if (passwordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+
+            shape = RoundedCornerShape(10.dp),
+
+            colors = TextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.secondary,
+                unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
+                disabledContainerColor = MaterialTheme.colorScheme.secondary,
+
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+
+                cursorColor = MaterialTheme.colorScheme.primary,
+
+                focusedTextColor = Color.Black,
+                unfocusedTextColor = Color.Black
+            ),
+
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Password,
+                imeAction = ImeAction.Next
+            )
+        )
+
+        Spacer(
+            modifier = Modifier.height(8.dp)
+        )
+
+        // confirm password box
+        TextField(
+            value = confirmPassword,
+
+            onValueChange = {
+                confirmPassword = it
+
+                if (passwordError != null) {
+                    passwordError = null
+                }
             },
 
-            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp),
+
+            placeholder = {
+                Text(
+                    text = "Confirm Password",
+                    color = PlaceholderColor,
+                    fontSize = 18.sp
+                )
+            },
+
+            leadingIcon = {
+                Image(
+                    painter = painterResource(
+                        id = R.drawable.key
+                    ),
+                    contentDescription = "Confirm password",
+                    modifier = Modifier.size(27.dp)
+                )
+            },
+
+            trailingIcon = {
+                Image(
+                    painter = painterResource(
+                        id = if (confirmPasswordVisible) {
+                            R.drawable.visible
+                        } else {
+                            R.drawable.not_visible
+                        }
+                    ),
+
+                    contentDescription =
+                        if (confirmPasswordVisible) {
+                            "Hide confirm password"
+                        } else {
+                            "Show confirm password"
+                        },
+
+                    modifier = Modifier
+                        .size(25.dp)
+                        .clickable {
+                            confirmPasswordVisible =
+                                !confirmPasswordVisible
+                        }
+                )
+            },
+
+            singleLine = true,
+
+            visualTransformation =
+                if (confirmPasswordVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+
+            shape = RoundedCornerShape(10.dp),
 
             colors = TextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.secondary,
@@ -279,60 +405,56 @@ fun CaregiverLoginScreen() {
 
             keyboardActions = KeyboardActions(
                 onDone = {
-                    validateLogin()
+                    validateEmail()
+                    validateSignUp()
                 }
             )
         )
 
-        // error message incorrect password
-        if (showError) {
+        // error message
+        if (passwordError != null) {
+
             Text(
-                text = "Incorrect email or password.",
+                text = passwordError!!,
                 color = ErrorColor,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 5.dp)
-            )
-        }
-
-        // forgot password
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = if (showError) 0.dp else 10.dp),
-            horizontalArrangement = Arrangement.End
-        ) {
-
-            Text(
-                text = "Forgot password?",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.clickable {
-
-                    // Belum dihubungkan
-                }
+                modifier = Modifier.padding(
+                    top = 5.dp
+                )
             )
         }
 
         Spacer(
-            modifier = Modifier.height(22.dp)
+            modifier = Modifier.height(
+                if (passwordError != null) {
+                    14.dp
+                } else {
+                    22.dp
+                }
+            )
         )
 
-        // login button box
+        // signup button
         Button(
             onClick = {
-                validateLogin()
+                validateEmail()
+                validateSignUp()
             },
+
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp),
+
             shape = RoundedCornerShape(10.dp),
+
             colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor =
+                    MaterialTheme.colorScheme.primary
             )
         ) {
 
             Text(
-                text = "Login",
+                text = "Sign Up",
                 color = MaterialTheme.colorScheme.background,
                 style = MaterialTheme.typography.titleLarge
             )
@@ -342,7 +464,7 @@ fun CaregiverLoginScreen() {
             modifier = Modifier.weight(1f)
         )
 
-        // tampilan -- or continue with --
+        // or continue with
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
@@ -376,7 +498,7 @@ fun CaregiverLoginScreen() {
             modifier = Modifier.height(25.dp)
         )
 
-        // google button box
+        // google button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -387,9 +509,9 @@ fun CaregiverLoginScreen() {
                     shape = RoundedCornerShape(10.dp)
                 )
                 .clickable {
-
-                    // Google Sign In belum dihubungkan
+                    onGoogleClick()
                 },
+
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
@@ -417,30 +539,30 @@ fun CaregiverLoginScreen() {
             modifier = Modifier.weight(1f)
         )
 
-        // don't have an account
-        Text(
-            text = buildAnnotatedString {
-
-                append("Don’t have an account? ")
-
-                withStyle(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append("Sign Up")
-                }
-            },
-            color = Color.Black,
-            fontSize = 16.sp,
+        // already have an account
+        Row(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .clickable {
+                .align(Alignment.CenterHorizontally),
 
-                    // Sign Up belum dihubungkan
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Text(
+                text = "Already have an account? ",
+                color = Color.Black,
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Text(
+                text = "Login",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    onLoginClick()
                 }
-        )
+            )
+        }
 
         Spacer(
             modifier = Modifier.height(42.dp)
@@ -450,8 +572,8 @@ fun CaregiverLoginScreen() {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun CaregiverLogin(){
+fun CaregiverSignUpPreview() {
     MedTrackTheme {
-        CaregiverLoginScreen()
+        CaregiverSignUpScreen()
     }
 }
