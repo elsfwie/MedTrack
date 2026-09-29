@@ -51,7 +51,7 @@ private val ErrorColor = Color(0xFFFF0000)
 private val BorderColor = Color(0xFF95AAAA)
 
 @Composable
-fun CaregiverSignUpScreen(
+fun CaregiverRegisterScreen(
     onBackClick: () -> Unit = {},
     onLoginClick: () -> Unit = {},
     onGoogleClick: () -> Unit = {},
@@ -127,9 +127,7 @@ fun CaregiverSignUpScreen(
         )
 
         // back arrow button
-        BackButton(
-            onClick = onBackClick
-        )
+        BackButton(onBackClick = onBackClick)
 
         Spacer(
             modifier = Modifier.height(62.dp)
@@ -574,6 +572,6 @@ fun CaregiverSignUpScreen(
 @Composable
 fun CaregiverSignUpPreview() {
     MedTrackTheme {
-        CaregiverSignUpScreen()
+        CaregiverRegisterScreen()
     }
 }

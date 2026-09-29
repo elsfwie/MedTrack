@@ -26,15 +26,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.medtrack.R
 import com.example.medtrack.ui.theme.MedTrackTheme
+import androidx.compose.foundation.clickable
 
 @Composable
-fun SplashScreen() {
+fun SplashScreen( onGetStartedClick: () -> Unit) {
 
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(top = 120.dp),
+            .padding(top = 160.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -104,6 +105,7 @@ fun SplashScreen() {
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(20.dp)
                 )
+                .clickable{ onGetStartedClick() }
         ) {
 
             Text(
@@ -119,6 +121,6 @@ fun SplashScreen() {
 @Composable
 fun SplashPreview() {
     MedTrackTheme {
-        SplashScreen()
+        SplashScreen(onGetStartedClick = {})
     }
 }

@@ -34,11 +34,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
+import androidx.compose.foundation.clickable
 import com.example.medtrack.ui.components.BackButton
 import com.example.medtrack.ui.theme.MedTrackTheme
 
 @Composable
-fun PatientLoginScreen() {
+fun PatientLoginScreen(onBackClick: () -> Unit, onLoginSuccess: () -> Unit) {
 
     var code by remember { mutableStateOf("") }
 
@@ -55,6 +56,7 @@ fun PatientLoginScreen() {
 
         // Back arrow
         BackButton(
+            onBackClick = onBackClick,
             modifier = Modifier.padding(top = 20.dp)
         )
 
@@ -147,7 +149,12 @@ fun PatientLoginScreen() {
                 .background(
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(10.dp)
-                ),
+                )
+                .clickable(
+                    enabled = code.length == 6
+                ) {
+                    onLoginSuccess()
+                },
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -163,6 +170,6 @@ fun PatientLoginScreen() {
 @Composable
 fun EnterCodePreview() {
     MedTrackTheme {
-        PatientLoginScreen()
+        PatientLoginScreen(onBackClick = {}, onLoginSuccess = {})
     }
 }

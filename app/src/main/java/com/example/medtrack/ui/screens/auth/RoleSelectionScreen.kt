@@ -44,7 +44,7 @@ enum class UserRole {
 }
 
 @Composable
-fun SelectRoleScreen() {
+fun SelectRoleScreen(onConfirm: (UserRole) -> Unit) {
 
     var selectedRole by remember {
         mutableStateOf<UserRole?>(null)
@@ -57,7 +57,7 @@ fun SelectRoleScreen() {
             .padding(
                 start = 30.dp,
                 end = 30.dp,
-                top = 110.dp,
+                top = 150.dp,
                 bottom = 80.dp
             ),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -169,8 +169,12 @@ fun SelectRoleScreen() {
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(20.dp)
                 )
-                .clickable {
-                    // navigation nanti ditambahkan di sini
+                .clickable(
+                    enabled = selectedRole != null
+                ) {
+                    selectedRole?.let { role ->
+                        onConfirm(role)
+                    }
                 }
         ) {
 
@@ -265,6 +269,6 @@ private fun RoleOption(
 @Composable
 fun SelectRolePreview() {
     MedTrackTheme {
-        SelectRoleScreen()
+        SelectRoleScreen(onConfirm = {})
     }
 }

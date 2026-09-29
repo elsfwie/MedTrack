@@ -14,30 +14,22 @@ import com.example.medtrack.R
 
 @Composable
 fun BackButton(
-    modifier: Modifier = Modifier,
-    onClick: (() -> Unit)? = null
+    onBackClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Box(
+    Image(
+        painter = painterResource(id = R.drawable.back),
+        contentDescription = "Back",
         modifier = modifier
-            .size(48.dp)
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable { onClick() }
-                } else {
-                    Modifier
-                }
-            )
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.back),
-            contentDescription = "Back",
-            modifier = Modifier.size(32.dp)
-        )
-    }
+            .size(32.dp)
+            .clickable {
+                onBackClick()
+            }
+    )
 }
 
 @Preview(showBackground = true)
 @Composable
 fun BackPreview(){
-    BackButton()
+    BackButton(onBackClick = {})
 }

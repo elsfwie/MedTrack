@@ -54,7 +54,11 @@ private val ErrorColor = Color(0xFFFF0000)
 private val BorderColor = Color(0xFF95AAAA)
 
 @Composable
-fun CaregiverLoginScreen() {
+fun CaregiverLoginScreen(
+    onBackClick: () -> Unit,
+    onLoginSuccess: () -> Unit,
+    onSignUpClick: () -> Unit = {}
+) {
 
     var email by remember {
         mutableStateOf("")
@@ -78,6 +82,7 @@ fun CaregiverLoginScreen() {
 
     // awalnya dianggap valid untuk sementara, nanti diubah setelah konek ke database
     fun validateLogin() {
+
         val isValidEmail =
             email.trim().lowercase().endsWith("@gmail.com") &&
                     email.substringBefore("@gmail.com").isNotBlank()
@@ -89,7 +94,14 @@ fun CaregiverLoginScreen() {
         }
 
         val validPassword = password.isNotBlank()
+
         showError = !(isValidEmail && validPassword)
+
+        // sementara dianggap berhasil jika email valid
+        // dan password tidak kosong
+        if (isValidEmail && validPassword) {
+            onLoginSuccess()
+        }
     }
 
     Column(
@@ -106,11 +118,7 @@ fun CaregiverLoginScreen() {
         )
 
         // menampilkan arrow back button
-        BackButton (
-            onClick = {
-                // Belum dihubungkan ke navigation
-            }
-        )
+        BackButton (onBackClick = onBackClick)
 
         Spacer(
             modifier = Modifier.height(62.dp)
@@ -418,29 +426,28 @@ fun CaregiverLoginScreen() {
         )
 
         // don't have an account
-        Text(
-            text = buildAnnotatedString {
-
-                append("Don’t have an account? ")
-
-                withStyle(
-                    style = SpanStyle(
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold
-                    )
-                ) {
-                    append("Sign Up")
-                }
-            },
-            color = Color.Black,
-            fontSize = 16.sp,
+        Row(
             modifier = Modifier
-                .align(Alignment.CenterHorizontally)
-                .clickable {
+                .align(Alignment.CenterHorizontally),
 
-                    // Sign Up belum dihubungkan
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Don’t have an account? ",
+                color = Color.Black,
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Text(
+                text = "Sign Up",
+                color = MaterialTheme.colorScheme.primary,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.clickable {
+                    onSignUpClick()
                 }
-        )
+            )
+        }
 
         Spacer(
             modifier = Modifier.height(42.dp)
@@ -452,6 +459,6 @@ fun CaregiverLoginScreen() {
 @Composable
 fun CaregiverLogin(){
     MedTrackTheme {
-        CaregiverLoginScreen()
+        CaregiverLoginScreen(onBackClick = {}, onLoginSuccess = {}, onSignUpClick = {})
     }
 }

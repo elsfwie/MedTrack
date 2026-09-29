@@ -4,9 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.medtrack.ui.screens.splash.SplashScreen
+import com.example.medtrack.navigation.MedTrackNavigation
 import com.example.medtrack.ui.theme.MedTrackTheme
 
 class MainActivity : ComponentActivity() {
@@ -15,17 +13,17 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MedTrackTheme {
-                SplashScreen()
+                MedTrackNavigation()
             }
         }
     }
 }
 
 
-@Preview(showBackground = true)
-@Composable
-fun SplashScreenPreview() {
-    MedTrackTheme {
-        SplashScreen()
-    }
-}
+//@Preview(showBackground = true)
+//@Composable
+//fun SplashScreenPreview() {
+//    MedTrackTheme {
+//        SplashScreen()
+//    }
+//}
