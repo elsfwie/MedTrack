@@ -13,18 +13,6 @@ import com.example.medtrack.model.UserRole
 import com.example.medtrack.ui.screens.home.CaregiverHomeScreen
 import com.example.medtrack.ui.screens.home.PatientHomeScreen
 
-object Routes {
-    const val SPLASH = "splash"
-    const val SELECT_ROLE = "select_role"
-
-    const val CAREGIVER_LOGIN = "caregiver_login"
-    const val CAREGIVER_REGISTER = "caregiver_register"
-    const val PATIENT_LOGIN = "patient_login"
-
-    const val CAREGIVER_DASHBOARD = "caregiver_dashboard"
-    const val PATIENT_DASHBOARD = "patient_dashboard"
-}
-
 @Composable
 fun MedTrackNavigation() {
 
@@ -32,20 +20,20 @@ fun MedTrackNavigation() {
 
     NavHost(
         navController = navController,
-        startDestination = Routes.SPLASH
+        startDestination = NavRoute.Splash.route
     ) {
 
         // Splash Screen
-        composable(Routes.SPLASH) {
+        composable(NavRoute.Splash.route) {
             SplashScreen(
                 onGetStartedClick = {
-                    navController.navigate(Routes.SELECT_ROLE)
+                    navController.navigate(NavRoute.RoleSelection.route)
                 }
             )
         }
 
         // Select Role Screen
-        composable(Routes.SELECT_ROLE) {
+        composable(NavRoute.RoleSelection.route) {
 
             SelectRoleScreen(
                 onConfirm = { selectedRole ->
@@ -53,11 +41,11 @@ fun MedTrackNavigation() {
                     when (selectedRole) {
 
                         UserRole.CAREGIVER -> {
-                            navController.navigate(Routes.CAREGIVER_LOGIN)
+                            navController.navigate(NavRoute.CaregiverLogin.route)
                         }
 
                         UserRole.PATIENT -> {
-                            navController.navigate(Routes.PATIENT_LOGIN)
+                            navController.navigate(NavRoute.PatientLogin.route)
                         }
                     }
 
@@ -66,7 +54,7 @@ fun MedTrackNavigation() {
         }
 
         // Caregiver Login
-        composable(Routes.CAREGIVER_LOGIN) {
+        composable(NavRoute.CaregiverLogin.route) {
 
             CaregiverLoginScreen(
                 onBackClick = {
@@ -74,21 +62,21 @@ fun MedTrackNavigation() {
                 },
 
                 onLoginSuccess = {
-                    navController.navigate(Routes.CAREGIVER_DASHBOARD) {
+                    navController.navigate(NavRoute.CaregiverHome.route) {
 
-                        popUpTo(Routes.CAREGIVER_LOGIN) {
+                        popUpTo(NavRoute.CaregiverLogin.route) {
                             inclusive = true
                         }
                     }
                 },
 
                 onSignUpClick = {
-                    navController.navigate(Routes.CAREGIVER_REGISTER)
+                    navController.navigate(NavRoute.CaregiverRegister.route)
                 }
             )
         }
 
-        composable(Routes.CAREGIVER_REGISTER) {
+        composable(NavRoute.CaregiverRegister.route) {
 
             CaregiverRegisterScreen(
 
@@ -101,9 +89,9 @@ fun MedTrackNavigation() {
                 },
 
                 onSignUpClick = {
-                    navController.navigate(Routes.CAREGIVER_DASHBOARD) {
+                    navController.navigate(NavRoute.CaregiverHome.route) {
 
-                        popUpTo(Routes.CAREGIVER_LOGIN) {
+                        popUpTo(NavRoute.CaregiverLogin.route) {
                             inclusive = true
                         }
                     }
@@ -112,7 +100,7 @@ fun MedTrackNavigation() {
         }
 
         // patient login
-        composable(Routes.PATIENT_LOGIN) {
+        composable(NavRoute.PatientLogin.route) {
 
             PatientLoginScreen(
 
@@ -122,20 +110,20 @@ fun MedTrackNavigation() {
 
                 onLoginSuccess = {
 
-                    navController.navigate(Routes.PATIENT_DASHBOARD) {
+                    navController.navigate(NavRoute.PatientHome.route) {
 
-                        popUpTo(Routes.PATIENT_LOGIN) {
+                        popUpTo(NavRoute.PatientLogin.route) {
                             inclusive = true
                         }
                     }
                 }
             )
         }
-        composable(Routes.CAREGIVER_DASHBOARD) {
+        composable(NavRoute.CaregiverHome.route) {
             CaregiverHomeScreen()
         }
 
-        composable(Routes.PATIENT_DASHBOARD) {
+        composable(NavRoute.PatientHome.route) {
             PatientHomeScreen()
         }
     }
