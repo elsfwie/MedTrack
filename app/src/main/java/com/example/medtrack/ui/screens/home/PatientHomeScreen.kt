@@ -23,11 +23,7 @@ import com.example.medtrack.ui.theme.MedTrackTheme
 import java.time.LocalDate
 
 @Composable
-fun PatientHomeScreen() {
-
-    var selectedIndex by remember {
-        mutableIntStateOf(0)
-    }
+fun PatientHomeScreen(onItemSelected: (Int) -> Unit = {}) {
 
     var selectedDate by remember {
         mutableStateOf(LocalDate.now())
@@ -42,10 +38,8 @@ fun PatientHomeScreen() {
 
         bottomBar = {
             PatientBottomNavigationBar(
-                selectedIndex = selectedIndex,
-                onItemSelected = { index ->
-                    selectedIndex = index
-                }
+                selectedIndex = 0,
+                onItemSelected = onItemSelected
             )
         },
 

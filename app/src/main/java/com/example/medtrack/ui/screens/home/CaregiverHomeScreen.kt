@@ -24,13 +24,7 @@ import java.time.LocalDate
 
 
 @Composable
-fun CaregiverHomeScreen() {
-
-    // menyimpan menu nav yg lg dipilih
-    var selectedIndex by remember {
-        mutableIntStateOf(0)
-    }
-
+fun CaregiverHomeScreen(onItemSelected: (Int) -> Unit = {}) {
 
     // simpan tanggal hari ini dan yg dipilih user
     var selectedDate by remember {
@@ -49,10 +43,8 @@ fun CaregiverHomeScreen() {
         // bottom nav caregiver
         bottomBar = {
             CaregiverBottomNavigationBar(
-                selectedIndex = selectedIndex,
-                onItemSelected = { index ->
-                    selectedIndex = index
-                }
+                selectedIndex = 0,
+                onItemSelected = onItemSelected
             )
         },
         containerColor = MaterialTheme.colorScheme.background

@@ -12,6 +12,8 @@ import com.example.medtrack.ui.screens.auth.PatientLoginScreen
 import com.example.medtrack.model.UserRole
 import com.example.medtrack.ui.screens.home.CaregiverHomeScreen
 import com.example.medtrack.ui.screens.home.PatientHomeScreen
+import com.example.medtrack.ui.screens.profile.CaregiverProfileScreen
+import com.example.medtrack.ui.screens.profile.PatientProfileScreen
 
 @Composable
 fun MedTrackNavigation() {
@@ -99,6 +101,23 @@ fun MedTrackNavigation() {
             )
         }
 
+        composable(NavRoute.CaregiverProfile.route) {
+
+            CaregiverProfileScreen(
+                selectedIndex = 3,
+                onItemSelected = { index ->
+                    when (index) {
+                        0 -> {
+                            navController.popBackStack(
+                                route = NavRoute.CaregiverHome.route,
+                                inclusive = false
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
         // patient login
         composable(NavRoute.PatientLogin.route) {
 
@@ -119,12 +138,49 @@ fun MedTrackNavigation() {
                 }
             )
         }
+
+        composable(NavRoute.PatientProfile.route) {
+            PatientProfileScreen(
+                selectedIndex = 2,
+                onItemSelected = { index ->
+                    when (index) {
+                        0 -> {
+                            navController.popBackStack(
+                                route = NavRoute.PatientHome.route,
+                                inclusive = false
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
         composable(NavRoute.CaregiverHome.route) {
-            CaregiverHomeScreen()
+            CaregiverHomeScreen(
+                onItemSelected = { index ->
+                    when (index) {
+                        3 -> {
+                            navController.navigate(NavRoute.CaregiverProfile.route){
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                }
+            )
         }
 
         composable(NavRoute.PatientHome.route) {
-            PatientHomeScreen()
+            PatientHomeScreen(
+                onItemSelected = { index ->
+                    when (index) {
+                        2 -> {
+                            navController.navigate(NavRoute.PatientProfile.route){
+                                launchSingleTop = true
+                            }
+                        }
+                    }
+                }
+            )
         }
     }
 }
