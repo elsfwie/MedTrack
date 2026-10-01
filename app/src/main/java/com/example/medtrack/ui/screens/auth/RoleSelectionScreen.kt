@@ -1,5 +1,6 @@
 package com.example.medtrack.ui.screens.auth
 
+import com.example.medtrack.model.UserRole
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -37,11 +38,6 @@ import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
 import com.example.medtrack.ui.theme.MedTrackTheme
 import androidx.compose.ui.unit.Dp
-
-enum class UserRole {
-    CAREGIVER,
-    PATIENT
-}
 
 @Composable
 fun SelectRoleScreen(onConfirm: (UserRole) -> Unit) {

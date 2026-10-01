@@ -9,7 +9,7 @@ import com.example.medtrack.ui.screens.splash.SplashScreen
 import com.example.medtrack.ui.screens.auth.CaregiverLoginScreen
 import com.example.medtrack.ui.screens.auth.CaregiverRegisterScreen
 import com.example.medtrack.ui.screens.auth.PatientLoginScreen
-import com.example.medtrack.ui.screens.auth.UserRole
+import com.example.medtrack.model.UserRole
 import com.example.medtrack.ui.screens.home.CaregiverHomeScreen
 import com.example.medtrack.ui.screens.home.PatientHomeScreen
 
