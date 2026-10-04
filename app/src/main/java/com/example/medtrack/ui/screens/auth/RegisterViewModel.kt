@@ -130,7 +130,8 @@ class RegisterViewModel(
                     _uiState.update {
                         it.copy(
                             registerError =
-                                "Unable to register. Please try again."
+                               result.exceptionOrNull()?.message
+                                   ?:"Unable to register. Please try again."
                         )
                     }
                 }

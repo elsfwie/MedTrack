@@ -6,31 +6,46 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.util.Locale
+import java.util.UUID
 
+// Khusus pengujian lokal dengan akun contoh (demo sebelum connect ke database untuk proses login akun asli).
 class FakeAuthRepository : AuthRepository {
+
+    private data class DemoAccount(
+        val user: AuthUser,
+        val password: String
+    )
+
+    private val accounts = mutableMapOf(
+        "caregiver@gmail.com" to DemoAccount(
+            user = AuthUser(
+                id = "demo_acc_caregiver",
+                role = UserRole.CAREGIVER,
+                email = "caregiver@gmail.com"
+            ),
+            password = "MedTrack123"
+        )
+    )
 
     private val _currentUser = MutableStateFlow<AuthUser?>(null)
 
     override val currentUser: StateFlow<AuthUser?> =
         _currentUser.asStateFlow()
 
+    private fun normalizeEmail(email: String): String {
+        return email.trim().lowercase(Locale.ROOT)
+    }
+
     override suspend fun loginCaregiver(
         email: String,
         password: String
     ): Result<AuthUser> {
-
-        // Meniru waktu tunggu layanan agar loading bisa diuji.
         delay(1000)
 
-        val emailMatches =
-            email.trim().equals(
-                "caregiver@gmail.com",
-                ignoreCase = true
-            )
+        val account = accounts[normalizeEmail(email)]
 
-        val passwordMatches = password == "MedTrack123"
-
-        if (!emailMatches || !passwordMatches) {
+        if (account == null || account.password != password) {
             return Result.failure(
                 IllegalArgumentException(
                     "Incorrect email or password."
@@ -38,26 +53,42 @@ class FakeAuthRepository : AuthRepository {
             )
         }
 
-        val user = AuthUser(
-            id = "demo-caregiver-001",
-            role = UserRole.CAREGIVER,
-            email = "caregiver@gmail.com"
-        )
+        _currentUser.value = account.user
 
-        _currentUser.value = user
-
-        return Result.success(user)
+        return Result.success(account.user)
     }
 
     override suspend fun registerCaregiver(
         email: String,
         password: String
     ): Result<AuthUser> {
-        return Result.failure(
-            UnsupportedOperationException(
-                "Demo registration is not implemented yet."
+        delay(1000)
+
+        val normalizedEmail = normalizeEmail(email)
+
+        if (accounts.containsKey(normalizedEmail)) {
+            return Result.failure(
+                IllegalArgumentException(
+                    "Email is already registered."
+                )
             )
+        }
+
+        val user = AuthUser(
+            id = UUID.randomUUID().toString(),
+            role = UserRole.CAREGIVER,
+            email = normalizedEmail
         )
+
+        accounts[normalizedEmail] = DemoAccount(
+            user = user,
+            password = password
+        )
+
+        // Mengikuti alur: registrasi berhasil langsung login.
+        _currentUser.value = user
+
+        return Result.success(user)
     }
 
     override suspend fun loginPatient(
