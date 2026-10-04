@@ -28,6 +28,8 @@ import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import com.example.medtrack.ui.screens.auth.SessionViewModel
 import com.example.medtrack.ui.screens.auth.SessionViewModelFactory
+import com.example.medtrack.ui.screens.auth.PatientLoginViewModel
+import com.example.medtrack.ui.screens.auth.PatientLoginViewModelFactory
 
 @Composable
 fun MedTrackNavigation() {
@@ -242,23 +244,40 @@ fun MedTrackNavigation() {
             )
         }
         // patient login
-        composable(NavRoute.PatientLogin.route) {
+        composable(NavRoute.PatientLogin.route) { backStackEntry ->
 
-            PatientLoginScreen(
+            val patientLoginViewModel = remember(
+                backStackEntry,
+                authRepository
+            ) {
+                val factory = PatientLoginViewModelFactory(authRepository)
 
-                onBackClick = {
-                    navController.popBackStack()
-                },
+                ViewModelProvider(
+                    backStackEntry,
+                    factory
+                )[PatientLoginViewModel::class.java]
+            }
 
-                onLoginSuccess = {
+            val uiState by patientLoginViewModel.uiState.collectAsState()
 
+            LaunchedEffect(uiState.isLoggedIn) {
+                if (uiState.isLoggedIn) {
                     navController.navigate(NavRoute.PatientHome.route) {
-
                         popUpTo(NavRoute.Splash.route) {
                             inclusive = true
                         }
+
                         launchSingleTop = true
                     }
+                }
+            }
+
+            PatientLoginScreen(
+                uiState = uiState,
+                onCodeChanged = patientLoginViewModel::onCodeChanged,
+                onLoginClick = patientLoginViewModel::login,
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }

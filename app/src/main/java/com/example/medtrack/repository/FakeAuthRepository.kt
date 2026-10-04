@@ -94,11 +94,24 @@ class FakeAuthRepository : AuthRepository {
     override suspend fun loginPatient(
         code: String
     ): Result<AuthUser> {
-        return Result.failure(
-            UnsupportedOperationException(
-                "Demo patient login is not implemented yet."
+        delay(1000)
+
+        if (code != "123456") {
+            return Result.failure(
+                IllegalArgumentException(
+                    "Invalid verification code."
+                )
             )
+        }
+
+        val user = AuthUser(
+            id = "demo-patient-001",
+            role = UserRole.PATIENT
         )
+
+        _currentUser.value = user
+
+        return Result.success(user)
     }
 
     override suspend fun logout(): Result<Unit> {
