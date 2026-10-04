@@ -131,9 +131,10 @@ fun MedTrackNavigation() {
                 onSignUpClick = {
                     navController.navigate(NavRoute.CaregiverHome.route) {
 
-                        popUpTo(NavRoute.CaregiverLogin.route) {
+                        popUpTo(NavRoute.Splash.route) {
                             inclusive = true
                         }
+                        launchSingleTop = true
                     }
                 }
             )
@@ -169,9 +170,10 @@ fun MedTrackNavigation() {
 
                     navController.navigate(NavRoute.PatientHome.route) {
 
-                        popUpTo(NavRoute.PatientLogin.route) {
+                        popUpTo(NavRoute.Splash.route) {
                             inclusive = true
                         }
+                        launchSingleTop = true
                     }
                 }
             )
