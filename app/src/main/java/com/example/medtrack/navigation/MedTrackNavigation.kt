@@ -24,11 +24,16 @@ import com.example.medtrack.ui.screens.auth.LoginViewModel
 import com.example.medtrack.ui.screens.auth.LoginViewModelFactory
 import com.example.medtrack.ui.screens.auth.RegisterViewModel
 import com.example.medtrack.ui.screens.auth.RegisterViewModelFactory
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import com.example.medtrack.ui.screens.auth.SessionViewModel
+import com.example.medtrack.ui.screens.auth.SessionViewModelFactory
 
 @Composable
 fun MedTrackNavigation() {
 
     val navController = rememberNavController()
+    val context = LocalContext.current
 
     val authRepository = remember {
         FakeAuthRepository()
@@ -172,23 +177,70 @@ fun MedTrackNavigation() {
             )
         }
 
-        composable(NavRoute.CaregiverProfile.route) {
+        composable(NavRoute.CaregiverProfile.route) { backStackEntry ->
+
+            val sessionViewModel = remember(
+                backStackEntry,
+                authRepository
+            ) {
+                val factory = SessionViewModelFactory(authRepository)
+
+                ViewModelProvider(
+                    backStackEntry,
+                    factory
+                )[SessionViewModel::class.java]
+            }
+
+            val sessionState by sessionViewModel.uiState.collectAsState()
+
+            LaunchedEffect(sessionState.isLoggedOut) {
+                if (sessionState.isLoggedOut) {
+                    navController.navigate(NavRoute.Splash.route) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
+                        }
+                        launchSingleTop = true
+                    }
+                }
+            }
+
+            LaunchedEffect(
+                sessionState.logoutError,
+                sessionState.isLoggingOut
+            ) {
+                val error = sessionState.logoutError
+
+                if (!sessionState.isLoggingOut && error != null) {
+                    Toast.makeText(
+                        context,
+                        error,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
 
             CaregiverProfileScreen(
                 selectedIndex = 3,
+
                 onItemSelected = { index ->
-                    when (index) {
-                        0 -> {
-                            navController.popBackStack(
-                                route = NavRoute.CaregiverHome.route,
-                                inclusive = false
-                            )
+                    if (
+                        !sessionState.isLoggingOut &&
+                        !sessionState.isLoggedOut
+                    ) {
+                        when (index) {
+                            0 -> {
+                                navController.popBackStack(
+                                    route = NavRoute.CaregiverHome.route,
+                                    inclusive = false
+                                )
+                            }
                         }
                     }
-                }
+                },
+
+                onLogoutClick = sessionViewModel::logout
             )
         }
-
         // patient login
         composable(NavRoute.PatientLogin.route) {
 
@@ -211,19 +263,68 @@ fun MedTrackNavigation() {
             )
         }
 
-        composable(NavRoute.PatientProfile.route) {
-            PatientProfileScreen(
-                selectedIndex = 2,
-                onItemSelected = { index ->
-                    when (index) {
-                        0 -> {
-                            navController.popBackStack(
-                                route = NavRoute.PatientHome.route,
-                                inclusive = false
-                            )
+        composable(NavRoute.PatientProfile.route) { backStackEntry ->
+
+            val sessionViewModel = remember(
+                backStackEntry,
+                authRepository
+            ) {
+                val factory = SessionViewModelFactory(authRepository)
+
+                ViewModelProvider(
+                    backStackEntry,
+                    factory
+                )[SessionViewModel::class.java]
+            }
+
+            val sessionState by sessionViewModel.uiState.collectAsState()
+
+            LaunchedEffect(sessionState.isLoggedOut) {
+                if (sessionState.isLoggedOut) {
+                    navController.navigate(NavRoute.Splash.route) {
+                        popUpTo(navController.graph.id) {
+                            inclusive = true
                         }
+                        launchSingleTop = true
                     }
                 }
+            }
+
+            LaunchedEffect(
+                sessionState.logoutError,
+                sessionState.isLoggingOut
+            ) {
+                val error = sessionState.logoutError
+
+                if (!sessionState.isLoggingOut && error != null) {
+                    Toast.makeText(
+                        context,
+                        error,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            PatientProfileScreen(
+                selectedIndex = 2,
+
+                onItemSelected = { index ->
+                    if (
+                        !sessionState.isLoggingOut &&
+                        !sessionState.isLoggedOut
+                    ) {
+                        when (index) {
+                            0 -> {
+                                navController.popBackStack(
+                                    route = NavRoute.PatientHome.route,
+                                    inclusive = false
+                                )
+                            }
+                        }
+                    }
+                },
+
+                onLogoutClick = sessionViewModel::logout
             )
         }
 
