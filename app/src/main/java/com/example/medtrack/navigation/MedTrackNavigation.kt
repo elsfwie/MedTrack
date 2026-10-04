@@ -22,6 +22,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.medtrack.repository.FakeAuthRepository
 import com.example.medtrack.ui.screens.auth.LoginViewModel
 import com.example.medtrack.ui.screens.auth.LoginViewModelFactory
+import com.example.medtrack.ui.screens.auth.RegisterViewModel
+import com.example.medtrack.ui.screens.auth.RegisterViewModelFactory
 
 @Composable
 fun MedTrackNavigation() {
@@ -116,9 +118,49 @@ fun MedTrackNavigation() {
             )
         }
 
-        composable(NavRoute.CaregiverRegister.route) {
+        composable(NavRoute.CaregiverRegister.route) { backStackEntry ->
+
+            val registerViewModel = remember(
+                backStackEntry,
+                authRepository
+            ) {
+                val factory = RegisterViewModelFactory(authRepository)
+
+                ViewModelProvider(
+                    backStackEntry,
+                    factory
+                )[RegisterViewModel::class.java]
+            }
+
+            val uiState by registerViewModel.uiState.collectAsState()
+
+            LaunchedEffect(uiState.isRegistered) {
+                if (uiState.isRegistered) {
+                    navController.navigate(
+                        NavRoute.CaregiverHome.route
+                    ) {
+                        popUpTo(NavRoute.Splash.route) {
+                            inclusive = true
+                        }
+
+                        launchSingleTop = true
+                    }
+                }
+            }
 
             CaregiverRegisterScreen(
+                uiState = uiState,
+
+                onEmailChanged =
+                    registerViewModel::onEmailChanged,
+
+                onPasswordChanged =
+                    registerViewModel::onPasswordChanged,
+
+                onConfirmPasswordChanged =
+                    registerViewModel::onConfirmPasswordChanged,
+
+                onSignUpClick = registerViewModel::register,
 
                 onBackClick = {
                     navController.popBackStack()
@@ -126,16 +168,6 @@ fun MedTrackNavigation() {
 
                 onLoginClick = {
                     navController.popBackStack()
-                },
-
-                onSignUpClick = {
-                    navController.navigate(NavRoute.CaregiverHome.route) {
-
-                        popUpTo(NavRoute.Splash.route) {
-                            inclusive = true
-                        }
-                        launchSingleTop = true
-                    }
                 }
             )
         }

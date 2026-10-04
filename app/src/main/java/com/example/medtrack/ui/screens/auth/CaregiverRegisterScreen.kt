@@ -52,24 +52,15 @@ private val BorderColor = Color(0xFF95AAAA)
 
 @Composable
 fun CaregiverRegisterScreen(
+    uiState: RegisterUiState,
+    onEmailChanged: (String) -> Unit,
+    onPasswordChanged: (String) -> Unit,
+    onConfirmPasswordChanged: (String) -> Unit,
+    onSignUpClick: () -> Unit,
     onBackClick: () -> Unit = {},
     onLoginClick: () -> Unit = {},
-    onGoogleClick: () -> Unit = {},
-    onSignUpClick: () -> Unit = {}
+    onGoogleClick: () -> Unit = {}
 ) {
-
-    var email by remember {
-        mutableStateOf("")
-    }
-
-    var password by remember {
-        mutableStateOf("")
-    }
-
-    var confirmPassword by remember {
-        mutableStateOf("")
-    }
-
     var passwordVisible by remember {
         mutableStateOf(false)
     }
@@ -78,41 +69,22 @@ fun CaregiverRegisterScreen(
         mutableStateOf(false)
     }
 
-    var passwordError by remember {
-        mutableStateOf<String?>(null)
-    }
+    val email = uiState.email
+    val password = uiState.password
+    val confirmPassword = uiState.confirmPassword
 
-    var emailError by remember {
-        mutableStateOf<String?>(null)
-    }
+    val emailError = uiState.emailError
 
-    // cek gmail
-    fun validateEmail() {
-        val trimmedEmail = email.trim().lowercase()
-        val isValid = trimmedEmail.endsWith("@gmail.com") &&
-                trimmedEmail.substringBefore("@gmail.com").isNotBlank()
+    val formErrors = listOfNotNull(
+        uiState.passwordError,
+        uiState.confirmPasswordError,
+        uiState.registerError
+    )
 
-        emailError = if (!isValid) {
-            "Please enter a valid email address."
-        } else {
-            null
-        }
-    }
+    val canInteract =
+        !uiState.isLoading && !uiState.isRegistered
 
-    fun validateSignUp() {
-        validateEmail()
-        passwordError = when {
-
-            password.length < 8 -> "Password must be at least 8 characters."
-            password != confirmPassword -> "Password do not match."
-            else -> null
-        }
-
-        if (emailError == null && passwordError == null) {
-            onSignUpClick()
-        }
-    }
-
+    // Column yang sudah ada dilanjutkan di bawah ini.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -151,11 +123,8 @@ fun CaregiverRegisterScreen(
         // email box
         TextField(
             value = email,
-            onValueChange = {
-                email = it
-                // reset error email saat diketik ulang
-                if (emailError != null) emailError = null
-            },
+            onValueChange = onEmailChanged,
+            enabled = canInteract,
 
             modifier = Modifier
                 .fillMaxWidth()
@@ -206,7 +175,7 @@ fun CaregiverRegisterScreen(
         // tampilkan pesan email error
         if (emailError != null) {
             Text(
-                text = emailError!!,
+                text = emailError,
                 color = ErrorColor,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 5.dp)
@@ -220,15 +189,8 @@ fun CaregiverRegisterScreen(
         // password box
         TextField(
             value = password,
-
-            onValueChange = {
-                password = it
-
-                // error hilang ketika user mulai memperbaiki input
-                if (passwordError != null) {
-                    passwordError = null
-                }
-            },
+            onValueChange = onPasswordChanged,
+            enabled = canInteract,
 
             modifier = Modifier
                 .fillMaxWidth()
@@ -314,14 +276,8 @@ fun CaregiverRegisterScreen(
         // confirm password box
         TextField(
             value = confirmPassword,
-
-            onValueChange = {
-                confirmPassword = it
-
-                if (passwordError != null) {
-                    passwordError = null
-                }
-            },
+            onValueChange = onConfirmPasswordChanged,
+            enabled = canInteract,
 
             modifier = Modifier
                 .fillMaxWidth()
@@ -403,28 +359,26 @@ fun CaregiverRegisterScreen(
 
             keyboardActions = KeyboardActions(
                 onDone = {
-                    validateEmail()
-                    validateSignUp()
+                    if (canInteract) {
+                        onSignUpClick()
+                    }
                 }
             )
         )
 
-        // error message
-        if (passwordError != null) {
-
+        // Menampilkan error messages, konfirmasi, alur regist
+        formErrors.forEach { message ->
             Text(
-                text = passwordError!!,
+                text = message,
                 color = ErrorColor,
                 style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(
-                    top = 5.dp
-                )
+                modifier = Modifier.padding(top = 5.dp)
             )
         }
 
         Spacer(
             modifier = Modifier.height(
-                if (passwordError != null) {
+                if (formErrors.isNotEmpty()) {
                     14.dp
                 } else {
                     22.dp
@@ -434,25 +388,22 @@ fun CaregiverRegisterScreen(
 
         // signup button
         Button(
-            onClick = {
-                validateEmail()
-                validateSignUp()
-            },
-
+            onClick = onSignUpClick,
+            enabled = canInteract,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp),
-
             shape = RoundedCornerShape(10.dp),
-
             colors = ButtonDefaults.buttonColors(
-                containerColor =
-                    MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
-
             Text(
-                text = "Sign Up",
+                text = if (uiState.isLoading) {
+                    "Creating account..."
+                } else {
+                    "Sign Up"
+                },
                 color = MaterialTheme.colorScheme.background,
                 style = MaterialTheme.typography.titleLarge
             )
@@ -506,7 +457,7 @@ fun CaregiverRegisterScreen(
                     color = BorderColor,
                     shape = RoundedCornerShape(10.dp)
                 )
-                .clickable {
+                .clickable (enabled = canInteract){
                     onGoogleClick()
                 },
 
@@ -556,7 +507,7 @@ fun CaregiverRegisterScreen(
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable {
+                modifier = Modifier.clickable(enabled = canInteract) {
                     onLoginClick()
                 }
             )
@@ -572,6 +523,12 @@ fun CaregiverRegisterScreen(
 @Composable
 fun CaregiverSignUpPreview() {
     MedTrackTheme {
-        CaregiverRegisterScreen()
+        CaregiverRegisterScreen(
+            uiState = RegisterUiState(),
+            onEmailChanged = {},
+            onPasswordChanged = {},
+            onConfirmPasswordChanged = {},
+            onSignUpClick = {}
+        )
     }
 }
