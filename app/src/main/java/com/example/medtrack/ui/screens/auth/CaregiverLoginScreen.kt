@@ -55,54 +55,26 @@ private val BorderColor = Color(0xFF95AAAA)
 
 @Composable
 fun CaregiverLoginScreen(
+    uiState: LoginUiState,
+    onEmailChanged: (String) -> Unit,
+    onPasswordChanged: (String) -> Unit,
+    onLoginClick: () -> Unit,
     onBackClick: () -> Unit,
-    onLoginSuccess: () -> Unit,
     onSignUpClick: () -> Unit = {}
 ) {
-
-    var email by remember {
-        mutableStateOf("")
-    }
-
-    var password by remember {
-        mutableStateOf("")
-    }
-
     var passwordVisible by remember {
         mutableStateOf(false)
     }
 
-    var showError by remember {
-        mutableStateOf(false)
-    }
+    val email = uiState.email
+    val password = uiState.password
+    val emailError = uiState.emailError
 
-    var emailError by remember {
-        mutableStateOf<String?>(null)
-    }
+    val passwordMessage =
+        uiState.passwordError ?: uiState.loginError
 
-    // awalnya dianggap valid untuk sementara, nanti diubah setelah konek ke database
-    fun validateLogin() {
-
-        val isValidEmail =
-            email.trim().lowercase().endsWith("@gmail.com") &&
-                    email.substringBefore("@gmail.com").isNotBlank()
-
-        emailError = if (!isValidEmail) {
-            "Please enter a valid email address."
-        } else {
-            null
-        }
-
-        val validPassword = password.isNotBlank()
-
-        showError = !(isValidEmail && validPassword)
-
-        // sementara dianggap berhasil jika email valid
-        // dan password tidak kosong
-        if (isValidEmail && validPassword) {
-            onLoginSuccess()
-        }
-    }
+    val showError = passwordMessage != null
+    val canInteract = !uiState.isLoading && !uiState.isLoggedIn
 
     Column(
         modifier = Modifier
@@ -140,11 +112,8 @@ fun CaregiverLoginScreen(
         // box email
         TextField(
             value = email,
-            onValueChange = {
-                email = it
-                // error hilang ketika user mulai memperbaiki input
-                if (emailError != null) emailError = null
-            },
+            onValueChange = onEmailChanged,
+            enabled = canInteract,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
@@ -188,7 +157,7 @@ fun CaregiverLoginScreen(
         // tampilkan pesan email error
         if (emailError != null) {
             Text(
-                text = emailError!!,
+                text = emailError,
                 color = ErrorColor,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 5.dp)
@@ -202,13 +171,8 @@ fun CaregiverLoginScreen(
         // box password
         TextField(
             value = password,
-            onValueChange = {
-                password = it
-
-                if (showError) {
-                    showError = false
-                }
-            },
+            onValueChange = onPasswordChanged,
+            enabled = canInteract,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(60.dp),
@@ -287,15 +251,17 @@ fun CaregiverLoginScreen(
 
             keyboardActions = KeyboardActions(
                 onDone = {
-                    validateLogin()
+                    if (canInteract) {
+                        onLoginClick()
+                    }
                 }
             )
         )
 
         // error message incorrect password
-        if (showError) {
+        if (passwordMessage != null) {
             Text(
-                text = "Incorrect email or password.",
+                text = passwordMessage,
                 color = ErrorColor,
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 5.dp)
@@ -327,9 +293,8 @@ fun CaregiverLoginScreen(
 
         // login button box
         Button(
-            onClick = {
-                validateLogin()
-            },
+            onClick = onLoginClick,
+            enabled = canInteract,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(58.dp),
@@ -338,9 +303,12 @@ fun CaregiverLoginScreen(
                 containerColor = MaterialTheme.colorScheme.primary
             )
         ) {
-
             Text(
-                text = "Login",
+                text = if (uiState.isLoading) {
+                    "Logging in..."
+                } else {
+                    "Login"
+                },
                 color = MaterialTheme.colorScheme.background,
                 style = MaterialTheme.typography.titleLarge
             )
@@ -443,7 +411,7 @@ fun CaregiverLoginScreen(
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                modifier = Modifier.clickable {
+                modifier = Modifier.clickable(enabled = canInteract) {
                     onSignUpClick()
                 }
             )
@@ -457,8 +425,15 @@ fun CaregiverLoginScreen(
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun CaregiverLogin(){
+fun CaregiverLogin() {
     MedTrackTheme {
-        CaregiverLoginScreen(onBackClick = {}, onLoginSuccess = {}, onSignUpClick = {})
+        CaregiverLoginScreen(
+            uiState = LoginUiState(),
+            onEmailChanged = {},
+            onPasswordChanged = {},
+            onLoginClick = {},
+            onBackClick = {},
+            onSignUpClick = {}
+        )
     }
 }

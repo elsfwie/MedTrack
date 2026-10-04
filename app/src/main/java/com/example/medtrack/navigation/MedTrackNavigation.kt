@@ -14,11 +14,23 @@ import com.example.medtrack.ui.screens.home.CaregiverHomeScreen
 import com.example.medtrack.ui.screens.home.PatientHomeScreen
 import com.example.medtrack.ui.screens.profile.CaregiverProfileScreen
 import com.example.medtrack.ui.screens.profile.PatientProfileScreen
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.lifecycle.ViewModelProvider
+import com.example.medtrack.repository.FakeAuthRepository
+import com.example.medtrack.ui.screens.auth.LoginViewModel
+import com.example.medtrack.ui.screens.auth.LoginViewModelFactory
 
 @Composable
 fun MedTrackNavigation() {
 
     val navController = rememberNavController()
+
+    val authRepository = remember {
+        FakeAuthRepository()
+    }
 
     NavHost(
         navController = navController,
@@ -56,24 +68,50 @@ fun MedTrackNavigation() {
         }
 
         // Caregiver Login
-        composable(NavRoute.CaregiverLogin.route) {
+        composable(NavRoute.CaregiverLogin.route) { backStackEntry ->
+
+            val loginViewModel = remember(
+                backStackEntry,
+                authRepository
+            ) {
+                val factory = LoginViewModelFactory(authRepository)
+
+                ViewModelProvider(
+                    backStackEntry,
+                    factory
+                )[LoginViewModel::class.java]
+            }
+
+            val uiState by loginViewModel.uiState.collectAsState()
+
+            LaunchedEffect(uiState.isLoggedIn) {
+                if (uiState.isLoggedIn) {
+                    navController.navigate(
+                        NavRoute.CaregiverHome.route
+                    ) {
+                        popUpTo(NavRoute.Splash.route) {
+                            inclusive = true
+                        }
+
+                        launchSingleTop = true
+                    }
+                }
+            }
 
             CaregiverLoginScreen(
+                uiState = uiState,
+                onEmailChanged = loginViewModel::onEmailChanged,
+                onPasswordChanged = loginViewModel::onPasswordChanged,
+                onLoginClick = loginViewModel::login,
+
                 onBackClick = {
                     navController.popBackStack()
                 },
 
-                onLoginSuccess = {
-                    navController.navigate(NavRoute.CaregiverHome.route) {
-
-                        popUpTo(NavRoute.CaregiverLogin.route) {
-                            inclusive = true
-                        }
-                    }
-                },
-
                 onSignUpClick = {
-                    navController.navigate(NavRoute.CaregiverRegister.route)
+                    navController.navigate(
+                        NavRoute.CaregiverRegister.route
+                    )
                 }
             )
         }

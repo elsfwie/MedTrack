@@ -105,7 +105,7 @@ class LoginViewModel(
                     _uiState.update {
                         it.copy(
                             loginError =
-                                "Unable to log in. Please try again."
+                                "Wrong email/password, please try again."
                         )
                     }
                 }
