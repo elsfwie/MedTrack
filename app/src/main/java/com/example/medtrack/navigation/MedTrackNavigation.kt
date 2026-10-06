@@ -10,6 +10,7 @@ import com.example.medtrack.ui.screens.auth.CaregiverLoginScreen
 import com.example.medtrack.ui.screens.auth.CaregiverRegisterScreen
 import com.example.medtrack.ui.screens.auth.PatientLoginScreen
 import com.example.medtrack.model.UserRole
+import com.example.medtrack.model.LastVisitedPage
 import com.example.medtrack.ui.screens.home.CaregiverHomeScreen
 import com.example.medtrack.ui.screens.home.PatientHomeScreen
 import com.example.medtrack.ui.screens.profile.CaregiverProfileScreen
@@ -96,7 +97,10 @@ fun MedTrackNavigation() {
             LaunchedEffect(uiState.isLoggedIn) {
                 if (uiState.isLoggedIn) {
                     navController.navigate(
-                        NavRoute.CaregiverHome.route
+                        resolveAuthenticatedRoute(
+                            role = UserRole.CAREGIVER,
+                            page = LastVisitedPage.DASHBOARD
+                        )
                     ) {
                         popUpTo(NavRoute.Splash.route) {
                             inclusive = true
@@ -144,7 +148,10 @@ fun MedTrackNavigation() {
             LaunchedEffect(uiState.isRegistered) {
                 if (uiState.isRegistered) {
                     navController.navigate(
-                        NavRoute.CaregiverHome.route
+                        resolveAuthenticatedRoute(
+                            role = UserRole.CAREGIVER,
+                            page = LastVisitedPage.DASHBOARD
+                        )
                     ) {
                         popUpTo(NavRoute.Splash.route) {
                             inclusive = true
@@ -262,7 +269,12 @@ fun MedTrackNavigation() {
 
             LaunchedEffect(uiState.isLoggedIn) {
                 if (uiState.isLoggedIn) {
-                    navController.navigate(NavRoute.PatientHome.route) {
+                    navController.navigate(
+                        resolveAuthenticatedRoute(
+                            role = UserRole.PATIENT,
+                            page = LastVisitedPage.DASHBOARD
+                        )
+                    ) {
                         popUpTo(NavRoute.Splash.route) {
                             inclusive = true
                         }
