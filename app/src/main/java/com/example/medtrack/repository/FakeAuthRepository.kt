@@ -2,6 +2,7 @@ package com.example.medtrack.repository
 
 import com.example.medtrack.model.AuthUser
 import com.example.medtrack.model.UserRole
+import com.example.medtrack.model.AuthSession
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +34,12 @@ class FakeAuthRepository : AuthRepository {
     override val currentUser: StateFlow<AuthUser?> =
         _currentUser.asStateFlow()
 
+    private val _sessionState =
+        MutableStateFlow<AuthSession>(AuthSession.SignedOut)
+
+    override val sessionState: StateFlow<AuthSession> =
+        _sessionState.asStateFlow()
+
     private fun normalizeEmail(email: String): String {
         return email.trim().lowercase(Locale.ROOT)
     }
@@ -54,6 +61,7 @@ class FakeAuthRepository : AuthRepository {
         }
 
         _currentUser.value = account.user
+        _sessionState.value = AuthSession.SignedIn(account.user)
 
         return Result.success(account.user)
     }
@@ -87,6 +95,7 @@ class FakeAuthRepository : AuthRepository {
 
         // Mengikuti alur: registrasi berhasil langsung login.
         _currentUser.value = user
+        _sessionState.value = AuthSession.SignedIn(user)
 
         return Result.success(user)
     }
@@ -110,12 +119,14 @@ class FakeAuthRepository : AuthRepository {
         )
 
         _currentUser.value = user
+        _sessionState.value = AuthSession.SignedIn(user)
 
         return Result.success(user)
     }
 
     override suspend fun logout(): Result<Unit> {
         _currentUser.value = null
+        _sessionState.value = AuthSession.SignedOut
 
         return Result.success(Unit)
     }

@@ -1,11 +1,13 @@
 package com.example.medtrack.repository
 
 import com.example.medtrack.model.AuthUser
+import com.example.medtrack.model.AuthSession
 import kotlinx.coroutines.flow.StateFlow
 
 interface AuthRepository {
 
     val currentUser: StateFlow<AuthUser?>
+    val sessionState: StateFlow<AuthSession>
 
     suspend fun loginCaregiver(
         email: String,
