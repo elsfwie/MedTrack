@@ -40,11 +40,10 @@ import com.example.medtrack.ui.screens.auth.RegisterViewModelFactory
 import com.example.medtrack.ui.screens.auth.SelectRoleScreen
 import com.example.medtrack.ui.screens.auth.SessionViewModel
 import com.example.medtrack.ui.screens.auth.SessionViewModelFactory
-import com.example.medtrack.ui.screens.home.CaregiverHomeScreen
-import com.example.medtrack.ui.screens.home.PatientHomeScreen
 import com.example.medtrack.ui.screens.profile.CaregiverProfileScreen
 import com.example.medtrack.ui.screens.profile.PatientProfileScreen
 import com.example.medtrack.ui.screens.splash.SplashScreen
+import com.example.medtrack.ui.screens.home.DashboardRoute
 
 @Composable
 fun MedTrackNavigation() {
@@ -240,7 +239,9 @@ private fun MedTrackGraph(
             }
         } else if (user.role == UserRole.CAREGIVER) {
             composable(NavRoute.CaregiverHome.route) {
-                CaregiverHomeScreen(
+                DashboardRoute(
+                    user = user,
+                    repository = application.localDataRepository,
                     onItemSelected = onCaregiverTab
                 )
             }
@@ -279,7 +280,9 @@ private fun MedTrackGraph(
             }
         } else {
             composable(NavRoute.PatientHome.route) {
-                PatientHomeScreen(
+                DashboardRoute(
+                    user = user,
+                    repository = application.localDataRepository,
                     onItemSelected = onPatientTab
                 )
             }

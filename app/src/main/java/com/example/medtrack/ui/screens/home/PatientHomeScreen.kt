@@ -1,18 +1,13 @@
 package com.example.medtrack.ui.screens.home
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -23,48 +18,31 @@ import com.example.medtrack.ui.theme.MedTrackTheme
 import java.time.LocalDate
 
 @Composable
-fun PatientHomeScreen(onItemSelected: (Int) -> Unit = {}) {
-
-    var selectedDate by remember {
-        mutableStateOf(LocalDate.now())
-    }
-
+fun PatientHomeScreen(
+    uiState: DashboardUiState = DashboardUiState(),
+    onDateSelected: (LocalDate) -> Unit = {},
+    onItemSelected: (Int) -> Unit = {}
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-
-        topBar = {
-            MedTrackHeader()
-        },
-
+        topBar = { MedTrackHeader() },
         bottomBar = {
             PatientBottomNavigationBar(
                 selectedIndex = 0,
                 onItemSelected = onItemSelected
             )
         },
-
         containerColor = MaterialTheme.colorScheme.background
-
     ) { innerPadding ->
-
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(
-                    MaterialTheme.colorScheme.background
-                )
+                .background(MaterialTheme.colorScheme.background)
         ) {
-            // calendar view
             MedTrackCalendar(
-                // tgl yg di select
-                selectedDate = selectedDate,
-                // dipanggil ketika user memilih
-
-                onDateSelected = { date ->
-                    selectedDate = date
-                },
-
+                selectedDate = uiState.date,
+                onDateSelected = onDateSelected,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -73,14 +51,24 @@ fun PatientHomeScreen(onItemSelected: (Int) -> Unit = {}) {
                         end = 24.dp
                     )
             )
+
+            DashboardContent(
+                uiState = uiState,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp, vertical = 24.dp)
+            )
         }
     }
 }
 
 @Preview
 @Composable
-fun PatientScreenPreview(){
+fun PatientScreenPreview() {
     MedTrackTheme {
-        PatientHomeScreen()
+        PatientHomeScreen(
+            uiState = DashboardUiState(isLoading = false)
+        )
     }
 }
