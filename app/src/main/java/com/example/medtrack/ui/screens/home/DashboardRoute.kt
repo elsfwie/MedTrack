@@ -21,6 +21,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.medtrack.model.AuthUser
+import com.example.medtrack.model.MedicationSchedule
 import com.example.medtrack.model.UserRole
 import com.example.medtrack.repository.LocalDataRepository
 
@@ -76,11 +77,15 @@ internal fun DashboardContent(
     ) {
         when {
             uiState.isLoading -> {
-                item { Text("Loading...") }
+                item {
+                    Text("Loading...")
+                }
             }
 
             uiState.error != null -> {
-                item { Text(uiState.error) }
+                item {
+                    Text(uiState.error)
+                }
             }
 
             else -> {
@@ -99,14 +104,19 @@ internal fun DashboardContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
-                            .clickable { onMedicationClick(medication) }
+                            .clickable {
+                                onMedicationClick(medication)
+                            }
                     ) {
                         Text(
-                            text = "${medication.time}  ${medication.medicineName}",
+                            text =
+                                "${medication.time}  ${medication.medicineName}",
                             style = MaterialTheme.typography.titleMedium
                         )
+
                         Text(
-                            text = "${medication.dose} · ${medication.status}",
+                            text =
+                                "${medication.dose} · ${medication.status}",
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -114,11 +124,21 @@ internal fun DashboardContent(
             }
         }
 
-        if (uiState.medications.isEmpty() && !uiState.isLoading && uiState.error == null) {
-            item { Text("No medications for this date") }
+        if (
+            uiState.medications.isEmpty() &&
+            !uiState.isLoading &&
+            uiState.error == null
+        ) {
+            item {
+                Text("No medications for this date")
+            }
         }
 
-        if (onAddSchedule != null && !uiState.isLoading && uiState.error == null) {
+        if (
+            onAddSchedule != null &&
+            !uiState.isLoading &&
+            uiState.error == null
+        ) {
             item {
                 TextButton(onClick = onAddSchedule) {
                     Text("+ Add Schedule")

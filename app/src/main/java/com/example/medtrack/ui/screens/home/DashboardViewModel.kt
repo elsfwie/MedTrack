@@ -129,5 +129,8 @@ class DashboardViewModel(
         medicineName: String,
         dose: String,
         time: String
-    ): Boolean = medicineName.isNotBlank() && dose.isNotBlank() && time.isNotBlank()
+    ): Boolean =
+        medicineName.isNotBlank() &&
+                dose.isNotBlank() &&
+                time.isNotBlank()
 }

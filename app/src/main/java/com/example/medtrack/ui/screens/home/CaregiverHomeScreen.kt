@@ -28,14 +28,20 @@ fun CaregiverHomeScreen(
     onDateSelected: (LocalDate) -> Unit = {},
     onItemSelected: (Int) -> Unit = {},
     onAddSchedule: (String, String, String) -> Unit = { _, _, _ -> },
-    onUpdateSchedule: (MedicationSchedule, String, String, String) -> Unit = { _, _, _, _ -> },
+    onUpdateSchedule:
+        (MedicationSchedule, String, String, String) -> Unit =
+        { _, _, _, _ -> },
     onDeleteSchedule: (MedicationSchedule) -> Unit = {}
 ) {
-    var dialogState by remember { mutableStateOf<ScheduleDialogState?>(null) }
+    var dialogState by remember {
+        mutableStateOf<ScheduleDialogState?>(null)
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { MedTrackHeader() },
+        topBar = {
+            MedTrackHeader()
+        },
         bottomBar = {
             CaregiverBottomNavigationBar(
                 selectedIndex = 0,
@@ -48,7 +54,9 @@ fun CaregiverHomeScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(MaterialTheme.colorScheme.background)
+                .background(
+                    MaterialTheme.colorScheme.background
+                )
         ) {
             MedTrackCalendar(
                 selectedDate = uiState.date,
@@ -65,7 +73,8 @@ fun CaregiverHomeScreen(
             DashboardContent(
                 uiState = uiState,
                 onMedicationClick = { medication ->
-                    dialogState = ScheduleDialogState.Detail(medication)
+                    dialogState =
+                        ScheduleDialogState.Detail(medication)
                 },
                 onAddSchedule = {
                     dialogState = ScheduleDialogState.Add
@@ -73,7 +82,10 @@ fun CaregiverHomeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp, vertical = 24.dp)
+                    .padding(
+                        horizontal = 24.dp,
+                        vertical = 24.dp
+                    )
             )
         }
     }
@@ -81,20 +93,39 @@ fun CaregiverHomeScreen(
     dialogState?.let { state ->
         ScheduleCrudDialog(
             state = state,
-            onDismiss = { dialogState = null },
-            onCreate = { medicineName, dose, time ->
-                onAddSchedule(medicineName, dose, time)
+            onDismiss = {
                 dialogState = null
             },
-            onUpdate = { schedule, medicineName, dose, time ->
-                onUpdateSchedule(schedule, medicineName, dose, time)
+            onCreate = { medicineName, dose, time ->
+                onAddSchedule(
+                    medicineName,
+                    dose,
+                    time
+                )
+                dialogState = null
+            },
+            onUpdate = {
+                    schedule,
+                    medicineName,
+                    dose,
+                    time ->
+
+                onUpdateSchedule(
+                    schedule,
+                    medicineName,
+                    dose,
+                    time
+                )
+
                 dialogState = null
             },
             onRequestEdit = { schedule ->
-                dialogState = ScheduleDialogState.Edit(schedule)
+                dialogState =
+                    ScheduleDialogState.Edit(schedule)
             },
             onRequestDelete = { schedule ->
-                dialogState = ScheduleDialogState.ConfirmDelete(schedule)
+                dialogState =
+                    ScheduleDialogState.ConfirmDelete(schedule)
             },
             onDelete = { schedule ->
                 onDeleteSchedule(schedule)
@@ -104,12 +135,17 @@ fun CaregiverHomeScreen(
     }
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+@Preview(
+    showBackground = true,
+    showSystemUi = true
+)
 @Composable
 fun CaregiverHomePreview() {
     MedTrackTheme {
         CaregiverHomeScreen(
-            uiState = DashboardUiState(isLoading = false)
+            uiState = DashboardUiState(
+                isLoading = false
+            )
         )
     }
 }
