@@ -1,5 +1,6 @@
 package com.example.medtrack.ui.screens.home
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -8,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -47,7 +49,10 @@ fun DashboardRoute(
         CaregiverHomeScreen(
             uiState = state,
             onDateSelected = model::selectDate,
-            onItemSelected = onItemSelected
+            onItemSelected = onItemSelected,
+            onAddSchedule = model::addSchedule,
+            onUpdateSchedule = model::updateSchedule,
+            onDeleteSchedule = model::deleteSchedule
         )
     } else {
         PatientHomeScreen(
@@ -61,6 +66,8 @@ fun DashboardRoute(
 @Composable
 internal fun DashboardContent(
     uiState: DashboardUiState,
+    onMedicationClick: (MedicationSchedule) -> Unit = {},
+    onAddSchedule: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -74,10 +81,6 @@ internal fun DashboardContent(
 
             uiState.error != null -> {
                 item { Text(uiState.error) }
-            }
-
-            uiState.medications.isEmpty() -> {
-                item { Text("No medications for this date") }
             }
 
             else -> {
@@ -96,6 +99,7 @@ internal fun DashboardContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
+                            .clickable { onMedicationClick(medication) }
                     ) {
                         Text(
                             text = "${medication.time}  ${medication.medicineName}",
@@ -106,6 +110,18 @@ internal fun DashboardContent(
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
+                }
+            }
+        }
+
+        if (uiState.medications.isEmpty() && !uiState.isLoading && uiState.error == null) {
+            item { Text("No medications for this date") }
+        }
+
+        if (onAddSchedule != null && !uiState.isLoading && uiState.error == null) {
+            item {
+                TextButton(onClick = onAddSchedule) {
+                    Text("+ Add Schedule")
                 }
             }
         }

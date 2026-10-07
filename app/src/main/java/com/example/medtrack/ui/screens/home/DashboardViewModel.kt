@@ -15,7 +15,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.UUID
 
 data class DashboardUiState(
     val date: LocalDate = LocalDate.now(),
@@ -26,8 +28,8 @@ data class DashboardUiState(
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DashboardViewModel(
-    user: AuthUser,
-    repository: LocalDataRepository,
+    private val user: AuthUser,
+    private val repository: LocalDataRepository,
     private val savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -75,4 +77,57 @@ class DashboardViewModel(
     fun selectDate(date: LocalDate) {
         savedStateHandle["selected_epoch_day"] = date.toEpochDay()
     }
+
+    fun addSchedule(
+        medicineName: String,
+        dose: String,
+        time: String
+    ) {
+        if (!isScheduleFormValid(medicineName, dose, time)) return
+
+        viewModelScope.launch {
+            repository.addSchedule(
+                MedicationSchedule(
+                    ownerId = user.id,
+                    id = UUID.randomUUID().toString(),
+                    date = uiState.value.date.toString(),
+                    medicineName = medicineName.trim(),
+                    dose = dose.trim(),
+                    time = time.trim(),
+                    status = "Pending"
+                )
+            )
+        }
+    }
+
+    fun updateSchedule(
+        schedule: MedicationSchedule,
+        medicineName: String,
+        dose: String,
+        time: String
+    ) {
+        if (!isScheduleFormValid(medicineName, dose, time)) return
+
+        viewModelScope.launch {
+            repository.updateSchedule(
+                schedule.copy(
+                    medicineName = medicineName.trim(),
+                    dose = dose.trim(),
+                    time = time.trim()
+                )
+            )
+        }
+    }
+
+    fun deleteSchedule(schedule: MedicationSchedule) {
+        viewModelScope.launch {
+            repository.deleteSchedule(schedule)
+        }
+    }
+
+    private fun isScheduleFormValid(
+        medicineName: String,
+        dose: String,
+        time: String
+    ): Boolean = medicineName.isNotBlank() && dose.isNotBlank() && time.isNotBlank()
 }

@@ -87,4 +87,30 @@ class LocalDataRepository(
             "Caregiver profile was not found."
         }
     }
+
+    suspend fun addSchedule(schedule: MedicationSchedule) {
+        dao.insertSchedule(schedule)
+    }
+
+    suspend fun updateSchedule(schedule: MedicationSchedule) {
+        check(
+            dao.updateSchedule(
+                ownerId = schedule.ownerId,
+                id = schedule.id,
+                date = schedule.date,
+                medicineName = schedule.medicineName,
+                dose = schedule.dose,
+                time = schedule.time,
+                status = schedule.status
+            ) == 1
+        ) {
+            "Schedule was not found."
+        }
+    }
+
+    suspend fun deleteSchedule(schedule: MedicationSchedule) {
+        check(dao.deleteSchedule(schedule.ownerId, schedule.id) == 1) {
+            "Schedule was not found."
+        }
+    }
 }

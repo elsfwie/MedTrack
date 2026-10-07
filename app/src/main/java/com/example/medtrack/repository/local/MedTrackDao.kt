@@ -17,6 +17,41 @@ interface MedTrackDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSchedules(schedules: List<MedicationSchedule>)
 
+    @Insert(onConflict = OnConflictStrategy.ABORT)
+    suspend fun insertSchedule(schedule: MedicationSchedule)
+
+    @Query(
+        """
+        UPDATE medication_schedules
+        SET date = :date,
+            medicineName = :medicineName,
+            dose = :dose,
+            time = :time,
+            status = :status
+        WHERE ownerId = :ownerId AND id = :id
+        """
+    )
+    suspend fun updateSchedule(
+        ownerId: String,
+        id: String,
+        date: String,
+        medicineName: String,
+        dose: String,
+        time: String,
+        status: String
+    ): Int
+
+    @Query(
+        """
+        DELETE FROM medication_schedules
+        WHERE ownerId = :ownerId AND id = :id
+        """
+    )
+    suspend fun deleteSchedule(
+        ownerId: String,
+        id: String
+    ): Int
+
     @Query("SELECT * FROM profiles WHERE id = :userId LIMIT 1")
     fun observeProfile(userId: String): Flow<UserProfile?>
 
