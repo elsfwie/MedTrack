@@ -1,17 +1,25 @@
 package com.example.medtrack.repository
 
+import com.example.medtrack.model.AuthSession
 import com.example.medtrack.model.AuthUser
 import com.example.medtrack.model.UserRole
-import com.example.medtrack.model.AuthSession
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import java.util.UUID
 
-// Khusus pengujian lokal dengan akun contoh (demo sebelum connect ke database untuk proses login akun asli).
-class FakeAuthRepository : AuthRepository {
+// Authentication demo lokal existing; bukan authentication server.
+class FakeAuthRepository(
+    private val sessionStore: SessionStore,
+    private val applicationScope: CoroutineScope
+) : AuthRepository {
 
     private data class DemoAccount(
         val user: AuthUser,
@@ -30,18 +38,69 @@ class FakeAuthRepository : AuthRepository {
     )
 
     private val _currentUser = MutableStateFlow<AuthUser?>(null)
-
     override val currentUser: StateFlow<AuthUser?> =
         _currentUser.asStateFlow()
 
     private val _sessionState =
-        MutableStateFlow<AuthSession>(AuthSession.SignedOut)
-
+        MutableStateFlow<AuthSession>(AuthSession.Checking)
     override val sessionState: StateFlow<AuthSession> =
         _sessionState.asStateFlow()
 
+    private val _restoreError = MutableStateFlow<String?>(null)
+    val restoreError: StateFlow<String?> = _restoreError.asStateFlow()
+
+    private var restoring = false
+
+    init {
+        restoreSession()
+    }
+
+    fun restoreSession() {
+        if (restoring || _sessionState.value != AuthSession.Checking) {
+            return
+        }
+
+        restoring = true
+        _restoreError.value = null
+
+        applicationScope.launch {
+            try {
+                publish(sessionStore.read())
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (exception: Exception) {
+                _restoreError.value =
+                    "Unable to restore session. Please try again."
+            } finally {
+                restoring = false
+            }
+        }
+    }
+
     private fun normalizeEmail(email: String): String {
         return email.trim().lowercase(Locale.ROOT)
+    }
+
+    private fun publish(user: AuthUser?) {
+        _currentUser.value = user
+        _sessionState.value = if (user == null) {
+            AuthSession.SignedOut
+        } else {
+            AuthSession.SignedIn(user)
+        }
+    }
+
+    private suspend fun persistSignIn(
+        user: AuthUser,
+        afterSave: () -> Unit = {}
+    ) {
+        // Penyimpanan dan publikasi sesi diselesaikan sebagai satu operasi.
+        // Pergantian navigation dapat membatalkan ViewModel pemanggil.
+        withContext(NonCancellable) {
+            sessionStore.save(user)
+            afterSave()
+            publish(user)
+        }
     }
 
     override suspend fun loginCaregiver(
@@ -54,15 +113,11 @@ class FakeAuthRepository : AuthRepository {
 
         if (account == null || account.password != password) {
             return Result.failure(
-                IllegalArgumentException(
-                    "Incorrect email or password."
-                )
+                IllegalArgumentException("Incorrect email or password.")
             )
         }
 
-        _currentUser.value = account.user
-        _sessionState.value = AuthSession.SignedIn(account.user)
-
+        persistSignIn(account.user)
         return Result.success(account.user)
     }
 
@@ -76,9 +131,7 @@ class FakeAuthRepository : AuthRepository {
 
         if (accounts.containsKey(normalizedEmail)) {
             return Result.failure(
-                IllegalArgumentException(
-                    "Email is already registered."
-                )
+                IllegalArgumentException("Email is already registered.")
             )
         }
 
@@ -88,28 +141,22 @@ class FakeAuthRepository : AuthRepository {
             email = normalizedEmail
         )
 
-        accounts[normalizedEmail] = DemoAccount(
-            user = user,
-            password = password
-        )
-
-        // Mengikuti alur: registrasi berhasil langsung login.
-        _currentUser.value = user
-        _sessionState.value = AuthSession.SignedIn(user)
+        persistSignIn(user) {
+            accounts[normalizedEmail] = DemoAccount(
+                user = user,
+                password = password
+            )
+        }
 
         return Result.success(user)
     }
 
-    override suspend fun loginPatient(
-        code: String
-    ): Result<AuthUser> {
+    override suspend fun loginPatient(code: String): Result<AuthUser> {
         delay(1000)
 
         if (code != "123456") {
             return Result.failure(
-                IllegalArgumentException(
-                    "Invalid verification code."
-                )
+                IllegalArgumentException("Invalid verification code.")
             )
         }
 
@@ -118,15 +165,15 @@ class FakeAuthRepository : AuthRepository {
             role = UserRole.PATIENT
         )
 
-        _currentUser.value = user
-        _sessionState.value = AuthSession.SignedIn(user)
-
+        persistSignIn(user)
         return Result.success(user)
     }
 
     override suspend fun logout(): Result<Unit> {
-        _currentUser.value = null
-        _sessionState.value = AuthSession.SignedOut
+        withContext(NonCancellable) {
+            sessionStore.clear()
+            publish(null)
+        }
 
         return Result.success(Unit)
     }
