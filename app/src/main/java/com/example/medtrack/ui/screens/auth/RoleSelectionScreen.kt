@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.medtrack.R
 import com.example.medtrack.ui.theme.MedTrackTheme
 import androidx.compose.ui.unit.Dp
@@ -42,7 +43,7 @@ import androidx.compose.ui.unit.Dp
 @Composable
 fun SelectRoleScreen(onConfirm: (UserRole) -> Unit) {
 
-    var selectedRole by remember {
+    var selectedRole by rememberSaveable {
         mutableStateOf<UserRole?>(null)
     }
 

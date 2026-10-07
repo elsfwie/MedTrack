@@ -51,6 +51,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.runtime.saveable.Saver
+import androidx.compose.runtime.saveable.rememberSaveable
 import com.example.medtrack.ui.theme.MedTrackTheme
 import kotlinx.coroutines.delay
 import java.time.DayOfWeek
@@ -68,6 +70,15 @@ private val CalendarDateShape = RoundedCornerShape(10.dp)
 private val CalendarFullShape = RoundedCornerShape(20.dp)
 private val CalendarDateHeight = 56.dp
 private const val CalendarAnimationDuration = 280
+private val CalendarLocalDateSaver = Saver<LocalDate, Long>(
+    save = { it.toEpochDay() },
+    restore = { LocalDate.ofEpochDay(it) }
+)
+
+private val CalendarYearMonthSaver = Saver<YearMonth, String>(
+    save = { it.toString() },
+    restore = { YearMonth.parse(it) }
+)
 
 
 private fun startOfWeek(date: LocalDate): LocalDate {
@@ -86,12 +97,14 @@ fun MedTrackCalendar(
     val today by rememberCurrentDate()
 
     // anchordate: menentukan minggu yang ditampilkan
-    var anchorDate by remember {
+    var anchorDate by rememberSaveable(
+        stateSaver = CalendarLocalDateSaver
+    ) {
         mutableStateOf(selectedDate)
     }
 
     // cek apakah full calendar view dibuka
-    var showMonthCalendar by remember {
+    var showMonthCalendar by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -394,7 +407,10 @@ private fun MonthCalendarDialog(
     onDismiss: () -> Unit
 ) {
 
-    var currentMonth by remember(initialMonth) {
+    var currentMonth by rememberSaveable(
+        initialMonth,
+        stateSaver = CalendarYearMonthSaver
+    ) {
         mutableStateOf(initialMonth)
     }
 
