@@ -45,6 +45,9 @@ import com.example.medtrack.ui.screens.splash.SplashScreen
 import com.example.medtrack.ui.screens.home.DashboardRoute
 import com.example.medtrack.ui.screens.profile.CaregiverProfileRoute
 import com.example.medtrack.ui.screens.profile.EditCaregiverProfileScreen
+import com.example.medtrack.ui.screens.patients.CaregiverPatientsScreen
+import com.example.medtrack.ui.screens.shared.CaregiverSharedScreen
+import com.example.medtrack.ui.screens.shared.PatientSharedScreen
 
 @Composable
 fun MedTrackNavigation() {
@@ -96,14 +99,14 @@ private fun MedTrackGraph(
 
     val caregiverRoutes = listOf(
         NavRoute.CaregiverHome.route,
-        null,
-        null,
+        NavRoute.Patient.route,
+        NavRoute.CaregiverShared.route,
         NavRoute.CaregiverProfile.route
     )
 
     val patientRoutes = listOf(
         NavRoute.PatientHome.route,
-        null,
+        NavRoute.PatientShared.route,
         NavRoute.PatientProfile.route
     )
 
@@ -246,6 +249,13 @@ private fun MedTrackGraph(
                     onBackClick = { navController.popBackStack() }
                 )
             }
+            composable(NavRoute.Patient.route) {
+                CaregiverPatientsScreen(onItemSelected = onCaregiverTab)
+            }
+
+            composable(NavRoute.CaregiverShared.route) {
+                CaregiverSharedScreen(onItemSelected = onCaregiverTab)
+            }
             composable(NavRoute.CaregiverHome.route) {
                 DashboardRoute(
                     user = user,
@@ -295,6 +305,9 @@ private fun MedTrackGraph(
                 )
             }
         } else {
+            composable(NavRoute.PatientShared.route) {
+                PatientSharedScreen(onItemSelected = onPatientTab)
+            }
             composable(NavRoute.PatientHome.route) {
                 DashboardRoute(
                     user = user,

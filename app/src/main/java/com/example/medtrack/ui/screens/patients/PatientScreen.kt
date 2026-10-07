@@ -11,7 +11,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.medtrack.ui.components.PatientBottomNavigationBar
+import com.example.medtrack.ui.screens.shared.SkeletonScreen
 
+
+@Composable
+fun CaregiverPatientsScreen(onItemSelected: (Int) -> Unit) {
+    SkeletonScreen(
+        title = "Patients",
+        isCaregiver = true,
+        selectedIndex = 1,
+        onItemSelected = onItemSelected
+    )
+}
 @Composable
 fun PatientHomeScreen() {
 
