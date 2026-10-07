@@ -40,10 +40,11 @@ import com.example.medtrack.ui.screens.auth.RegisterViewModelFactory
 import com.example.medtrack.ui.screens.auth.SelectRoleScreen
 import com.example.medtrack.ui.screens.auth.SessionViewModel
 import com.example.medtrack.ui.screens.auth.SessionViewModelFactory
-import com.example.medtrack.ui.screens.profile.CaregiverProfileScreen
 import com.example.medtrack.ui.screens.profile.PatientProfileScreen
 import com.example.medtrack.ui.screens.splash.SplashScreen
 import com.example.medtrack.ui.screens.home.DashboardRoute
+import com.example.medtrack.ui.screens.profile.CaregiverProfileRoute
+import com.example.medtrack.ui.screens.profile.EditCaregiverProfileScreen
 
 @Composable
 fun MedTrackNavigation() {
@@ -238,6 +239,13 @@ private fun MedTrackGraph(
                 )
             }
         } else if (user.role == UserRole.CAREGIVER) {
+            composable(NavRoute.EditCaregiverProfile.route) {
+                EditCaregiverProfileScreen(
+                    user = user,
+                    repository = application.localDataRepository,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
             composable(NavRoute.CaregiverHome.route) {
                 DashboardRoute(
                     user = user,
@@ -265,17 +273,25 @@ private fun MedTrackGraph(
                     }
                 }
 
-                CaregiverProfileScreen(
-                    selectedIndex = 3,
+                CaregiverProfileRoute(
+                    user = user,
+                    repository = application.localDataRepository,
                     onItemSelected = { index ->
-                        if (
-                            !state.isLoggingOut &&
-                            !state.isLoggedOut
-                        ) {
+                        if (!state.isLoggingOut && !state.isLoggedOut) {
                             onCaregiverTab(index)
                         }
                     },
-                    onLogoutClick = model::logout
+                    onLogoutClick = model::logout,
+                    onEditProfileClick = {
+                        if (!state.isLoggingOut && !state.isLoggedOut) {
+                            navController.navigate(
+                                NavRoute.EditCaregiverProfile.route
+                            ) {
+                                launchSingleTop = true
+                            }
+                        }
+                    },
+                    canInteract = !state.isLoggingOut && !state.isLoggedOut
                 )
             }
         } else {

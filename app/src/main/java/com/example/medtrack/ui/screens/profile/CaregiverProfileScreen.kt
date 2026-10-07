@@ -30,6 +30,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.TextButton
 import com.example.medtrack.R
 import com.example.medtrack.ui.components.CaregiverBottomNavigationBar
 import com.example.medtrack.ui.components.Header
@@ -49,7 +50,10 @@ fun CaregiverProfileScreen(
     @DrawableRes profileIcon: Int = R.drawable.profile,
     @DrawableRes logoutIcon: Int = R.drawable.logout,
 
-    onLogoutClick: () -> Unit = {}
+    onLogoutClick: () -> Unit = {},
+    onEditProfileClick: () -> Unit = {},
+    canEdit: Boolean = false,
+    profileMessage: String? = null
 ) {
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -146,6 +150,20 @@ fun CaregiverProfileScreen(
             Spacer(
                 modifier = Modifier.weight(1f)
             )
+            if (profileMessage != null) {
+                Text(
+                    text = profileMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+
+            TextButton(
+                onClick = onEditProfileClick,
+                enabled = canEdit
+            ) {
+                Text("Edit Profile")
+            }
 
             // tombol logout
             LogoutButton(

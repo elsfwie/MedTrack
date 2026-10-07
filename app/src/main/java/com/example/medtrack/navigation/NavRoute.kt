@@ -18,5 +18,6 @@ sealed class NavRoute(val route: String) {
     object PatientShared : NavRoute("patient_shared")
 
     object CaregiverProfile : NavRoute("caregiver_profile")
+    object EditCaregiverProfile : NavRoute("edit_caregiver_profile")
     object PatientProfile : NavRoute("patient_profile")
 }
