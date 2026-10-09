@@ -10,3 +10,14 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Python
+backend/.venv/
+backend/__pycache__/
+**/__pycache__/
+*.pyc
+backend/.env
+push.bat
+
+# keeps the templ
+!backend/.env.example
