@@ -13,6 +13,12 @@ fun resolveAuthenticatedRoute(
                 LastVisitedPage.DASHBOARD ->
                     NavRoute.CaregiverHome.route
 
+                LastVisitedPage.PATIENTS ->
+                    NavRoute.Patient.route
+
+                LastVisitedPage.SHARING ->
+                    NavRoute.CaregiverShared.route
+
                 LastVisitedPage.PROFILE ->
                     NavRoute.CaregiverProfile.route
             }
@@ -23,8 +29,14 @@ fun resolveAuthenticatedRoute(
                 LastVisitedPage.DASHBOARD ->
                     NavRoute.PatientHome.route
 
+                LastVisitedPage.SHARING ->
+                    NavRoute.PatientShared.route
+
                 LastVisitedPage.PROFILE ->
                     NavRoute.PatientProfile.route
+
+                LastVisitedPage.PATIENTS ->
+                    NavRoute.PatientHome.route
             }
         }
     }
