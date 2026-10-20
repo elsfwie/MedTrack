@@ -47,7 +47,8 @@ class FakeAuthRepository(
         _sessionState.asStateFlow()
 
     private val _restoreError = MutableStateFlow<String?>(null)
-    val restoreError: StateFlow<String?> = _restoreError.asStateFlow()
+
+    override val restoreError: StateFlow<String?> = _restoreError.asStateFlow()
 
     private var restoring = false
 
@@ -55,7 +56,7 @@ class FakeAuthRepository(
         restoreSession()
     }
 
-    fun restoreSession() {
+    override fun restoreSession() {
         if (restoring || _sessionState.value != AuthSession.Checking) {
             return
         }

@@ -27,7 +27,7 @@ import com.example.medtrack.model.AuthSession
 import com.example.medtrack.model.AuthUser
 import com.example.medtrack.model.LastVisitedPage
 import com.example.medtrack.model.UserRole
-import com.example.medtrack.repository.FakeAuthRepository
+import com.example.medtrack.repository.AuthRepository
 import com.example.medtrack.ui.screens.auth.CaregiverLoginScreen
 import com.example.medtrack.ui.screens.auth.CaregiverRegisterScreen
 import com.example.medtrack.ui.screens.auth.LoginViewModel
@@ -96,7 +96,7 @@ fun MedTrackNavigation() {
 @Composable
 private fun MedTrackGraph(
     application: MedTrackApplication,
-    authRepository: FakeAuthRepository,
+    authRepository: AuthRepository,
     user: AuthUser?
 ) {
     val navController = rememberNavController()

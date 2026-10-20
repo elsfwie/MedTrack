@@ -2,7 +2,7 @@ package com.example.medtrack
 import androidx.room.Room
 import com.example.medtrack.repository.LocalDataRepository
 import com.example.medtrack.repository.local.MedTrackDatabase
-
+import com.example.medtrack.repository.AuthRepository
 import android.app.Application
 import com.example.medtrack.repository.FakeAuthRepository
 import com.example.medtrack.repository.SessionStore
@@ -15,7 +15,7 @@ class MedTrackApplication : Application() {
     private val applicationScope =
         CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
 
-    val authRepository: FakeAuthRepository by lazy {
+    val authRepository: AuthRepository by lazy {
         FakeAuthRepository(
             sessionStore = SessionStore(this),
             applicationScope = applicationScope
