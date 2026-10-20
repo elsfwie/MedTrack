@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class SessionUiState(
+    val showLogoutDialog: Boolean = false,
     val isLoggingOut: Boolean = false,
     val logoutError: String? = null,
     val isLoggedOut: Boolean = false
@@ -21,9 +22,35 @@ class SessionViewModel(
 
     private val _uiState = MutableStateFlow(SessionUiState())
     val uiState = _uiState.asStateFlow()
+    fun requestLogout() {
+        val state = _uiState.value
+
+        if (state.isLoggingOut || state.isLoggedOut) return
+
+        _uiState.update {
+            it.copy(
+                showLogoutDialog = true,
+                logoutError = null
+            )
+        }
+    }
+
+    fun cancelLogout() {
+        val state = _uiState.value
+
+        if (state.isLoggingOut || state.isLoggedOut) return
+
+        _uiState.update {
+            it.copy(
+                showLogoutDialog = false,
+                logoutError = null
+            )
+        }
+    }
 
     fun logout() {
-        if (_uiState.value.isLoggingOut || _uiState.value.isLoggedOut) {
+        val state = _uiState.value
+        if (!state.showLogoutDialog || state.isLoggingOut || state.isLoggedOut) {
             return
         }
 
@@ -45,7 +72,7 @@ class SessionViewModel(
 
                 if (result.isSuccess) {
                     _uiState.update {
-                        it.copy(isLoggedOut = true)
+                        it.copy(showLogoutDialog = false, isLoggedOut = true)
                     }
                 } else {
                     _uiState.update {

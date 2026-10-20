@@ -281,18 +281,10 @@ private fun MedTrackGraph(
 
                 val state by model.uiState.collectAsStateWithLifecycle()
 
-                var showLogoutDialog by rememberSaveable {
-                    mutableStateOf(false)
-                }
-
-                if (showLogoutDialog) {
+                if (state.showLogoutDialog) {
                     LogoutConfirmDialog(
-                        onCancel = {
-                            showLogoutDialog = false
-                        },
-                        onConfirm = {
-                            model.logout()
-                        },
+                        onCancel = model::cancelLogout,
+                        onConfirm = model::logout,
                         isLoggingOut = state.isLoggingOut || state.isLoggedOut
                     )
                 }
@@ -315,11 +307,7 @@ private fun MedTrackGraph(
                             onCaregiverTab(index)
                         }
                     },
-                    onLogoutClick = {
-                        if (!state.isLoggingOut && !state.isLoggedOut) {
-                            showLogoutDialog = true
-                        }
-                    },
+                    onLogoutClick = model::requestLogout,
 
                     onEditProfileClick = {
                         if (!state.isLoggingOut && !state.isLoggedOut) {
@@ -392,11 +380,7 @@ private fun MedTrackGraph(
                             onPatientTab(index)
                         }
                     },
-                    onLogoutClick = {
-                        if (!state.isLoggingOut && !state.isLoggedOut) {
-                            showLogoutDialog = true
-                        }
-                    }
+                    onLogoutClick = model::requestLogout
                 )
             }
         }
