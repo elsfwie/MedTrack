@@ -23,7 +23,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.medtrack.MedTrackApplication
-import com.example.medtrack.model.AuthSession
 import com.example.medtrack.model.AuthUser
 import com.example.medtrack.model.LastVisitedPage
 import com.example.medtrack.model.UserRole
@@ -53,43 +52,65 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.example.medtrack.ui.components.LogoutConfirmDialog
 import com.example.medtrack.ui.components.DashboardLeaveHandler
+import com.example.medtrack.ui.app.AppUiState
+import com.example.medtrack.ui.app.AppViewModel
+import com.example.medtrack.ui.app.AppViewModelFactory
 
 @Composable
 fun MedTrackNavigation() {
     val application =
         LocalContext.current.applicationContext as MedTrackApplication
+
     val authRepository = application.authRepository
 
-    val session by authRepository.sessionState.collectAsStateWithLifecycle()
-    val restoreError by authRepository.restoreError.collectAsStateWithLifecycle()
+    val appViewModel: AppViewModel = viewModel(
+        factory = remember(authRepository) {
+            AppViewModelFactory(authRepository)
+        }
+    )
 
-    if (session == AuthSession.Checking) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(restoreError ?: "Loading...")
+    val uiState by appViewModel.uiState.collectAsStateWithLifecycle()
 
-            if (restoreError != null) {
-                TextButton(onClick = authRepository::restoreSession) {
-                    Text("Retry")
+    when (val state = uiState) {
+        is AppUiState.CheckingSession -> {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(state.errorMessage ?: "Loading...")
+
+                if (state.errorMessage != null) {
+                    TextButton(
+                        onClick = appViewModel::retryRestoreSession
+                    ) {
+                        Text("Retry")
+                    }
                 }
             }
         }
-        return
-    }
 
-    val user = (session as? AuthSession.SignedIn)?.user
+        AppUiState.SignedOut -> {
+            key(null) {
+                MedTrackGraph(
+                    application = application,
+                    authRepository = authRepository,
+                    user = null
+                )
+            }
+        }
 
-    key(user?.id, user?.role) {
-        MedTrackGraph(
-            application = application,
-            authRepository = authRepository,
-            user = user
-        )
+        is AppUiState.SignedIn -> {
+            key(state.user.id, state.user.role) {
+                MedTrackGraph(
+                    application = application,
+                    authRepository = authRepository,
+                    user = state.user
+                )
+            }
+        }
     }
 }
 

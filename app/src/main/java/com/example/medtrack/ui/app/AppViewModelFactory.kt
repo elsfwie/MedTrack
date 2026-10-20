@@ -3,11 +3,9 @@ package com.example.medtrack.ui.app
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.medtrack.repository.AuthRepository
-import com.example.medtrack.repository.LastVisitedPageRepository
 
 class AppViewModelFactory(
-    private val authRepository: AuthRepository,
-    private val lastVisitedPageRepository: LastVisitedPageRepository
+    private val authRepository: AuthRepository
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(
@@ -15,10 +13,7 @@ class AppViewModelFactory(
     ): T {
         if (modelClass.isAssignableFrom(AppViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return AppViewModel(
-                authRepository = authRepository,
-                lastVisitedPageRepository = lastVisitedPageRepository
-            ) as T
+            return AppViewModel(authRepository) as T
         }
 
         throw IllegalArgumentException("Unknown ViewModel class")

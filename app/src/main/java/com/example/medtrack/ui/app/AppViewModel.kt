@@ -3,67 +3,45 @@ package com.example.medtrack.ui.app
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.medtrack.model.AuthSession
-import com.example.medtrack.model.LastVisitedPage
 import com.example.medtrack.repository.AuthRepository
-import com.example.medtrack.repository.LastVisitedPageRepository
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 
 class AppViewModel(
-    private val authRepository: AuthRepository,
-    private val lastVisitedPageRepository: LastVisitedPageRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
-    private val _uiState =
-        MutableStateFlow<AppUiState>(AppUiState.CheckingSession)
+    val uiState: StateFlow<AppUiState> =
+        combine(
+            authRepository.sessionState,
+            authRepository.restoreError
+        ) { session, restoreError ->
+            when (session) {
+                AuthSession.Checking -> {
+                    AppUiState.CheckingSession(
+                        errorMessage = restoreError
+                    )
+                }
 
-    val uiState = _uiState.asStateFlow()
+                AuthSession.SignedOut -> {
+                    AppUiState.SignedOut
+                }
 
-    init {
-        observeSession()
-    }
-
-    private fun observeSession() {
-        viewModelScope.launch {
-            authRepository.sessionState.collectLatest { session ->
-                when (session) {
-                    AuthSession.Checking -> {
-                        _uiState.value = AppUiState.CheckingSession
-                    }
-
-                    AuthSession.SignedOut -> {
-                        _uiState.value = AppUiState.SignedOut
-                    }
-
-                    is AuthSession.SignedIn -> {
-                        _uiState.value = AppUiState.CheckingSession
-
-                        val lastPage = readLastPage(session.user.id)
-
-                        _uiState.value = AppUiState.SignedIn(
-                            user = session.user,
-                            initialPage = lastPage
-                        )
-                    }
+                is AuthSession.SignedIn -> {
+                    AppUiState.SignedIn(
+                        user = session.user
+                    )
                 }
             }
-        }
-    }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Eagerly,
+            initialValue = AppUiState.CheckingSession()
+        )
 
-    private suspend fun readLastPage(
-        userId: String
-    ): LastVisitedPage {
-        return try {
-            lastVisitedPageRepository.getLastPage(userId)
-                ?: LastVisitedPage.DASHBOARD
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (exception: Exception) {
-            // Gagal membaca riwayat tidak membatalkan sesi login.
-            LastVisitedPage.DASHBOARD
-        }
+    fun retryRestoreSession() {
+        authRepository.restoreSession()
     }
 }
