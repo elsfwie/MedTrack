@@ -48,6 +48,11 @@ import com.example.medtrack.ui.screens.profile.EditCaregiverProfileScreen
 import com.example.medtrack.ui.screens.patients.CaregiverPatientsScreen
 import com.example.medtrack.ui.screens.shared.CaregiverSharedScreen
 import com.example.medtrack.ui.screens.shared.PatientSharedScreen
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.example.medtrack.ui.components.LogoutConfirmDialog
+import com.example.medtrack.ui.components.DashboardLeaveHandler
 
 @Composable
 fun MedTrackNavigation() {
@@ -256,7 +261,10 @@ private fun MedTrackGraph(
             composable(NavRoute.CaregiverShared.route) {
                 CaregiverSharedScreen(onItemSelected = onCaregiverTab)
             }
+
             composable(NavRoute.CaregiverHome.route) {
+                DashboardLeaveHandler()
+
                 DashboardRoute(
                     user = user,
                     repository = application.localDataRepository,
@@ -272,6 +280,22 @@ private fun MedTrackGraph(
                 )
 
                 val state by model.uiState.collectAsStateWithLifecycle()
+
+                var showLogoutDialog by rememberSaveable {
+                    mutableStateOf(false)
+                }
+
+                if (showLogoutDialog) {
+                    LogoutConfirmDialog(
+                        onCancel = {
+                            showLogoutDialog = false
+                        },
+                        onConfirm = {
+                            model.logout()
+                        },
+                        isLoggingOut = state.isLoggingOut || state.isLoggedOut
+                    )
+                }
 
                 LaunchedEffect(state.logoutError) {
                     state.logoutError?.let { message ->
@@ -291,7 +315,12 @@ private fun MedTrackGraph(
                             onCaregiverTab(index)
                         }
                     },
-                    onLogoutClick = model::logout,
+                    onLogoutClick = {
+                        if (!state.isLoggingOut && !state.isLoggedOut) {
+                            showLogoutDialog = true
+                        }
+                    },
+
                     onEditProfileClick = {
                         if (!state.isLoggingOut && !state.isLoggedOut) {
                             navController.navigate(
@@ -309,6 +338,8 @@ private fun MedTrackGraph(
                 PatientSharedScreen(onItemSelected = onPatientTab)
             }
             composable(NavRoute.PatientHome.route) {
+                DashboardLeaveHandler()
+
                 DashboardRoute(
                     user = user,
                     repository = application.localDataRepository,
@@ -324,6 +355,22 @@ private fun MedTrackGraph(
                 )
 
                 val state by model.uiState.collectAsStateWithLifecycle()
+
+                var showLogoutDialog by rememberSaveable {
+                    mutableStateOf(false)
+                }
+
+                if (showLogoutDialog) {
+                    LogoutConfirmDialog(
+                        onCancel = {
+                            showLogoutDialog = false
+                        },
+                        onConfirm = {
+                            model.logout()
+                        },
+                        isLoggingOut = state.isLoggingOut || state.isLoggedOut
+                    )
+                }
 
                 LaunchedEffect(state.logoutError) {
                     state.logoutError?.let { message ->
@@ -345,7 +392,11 @@ private fun MedTrackGraph(
                             onPatientTab(index)
                         }
                     },
-                    onLogoutClick = model::logout
+                    onLogoutClick = {
+                        if (!state.isLoggingOut && !state.isLoggedOut) {
+                            showLogoutDialog = true
+                        }
+                    }
                 )
             }
         }
