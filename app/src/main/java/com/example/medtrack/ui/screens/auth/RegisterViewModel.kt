@@ -72,7 +72,7 @@ class RegisterViewModel(
         val password = currentState.password
         val confirmPassword = currentState.confirmPassword
 
-        val emailError = AuthValidator.validateEmail(email)
+        val emailError = AuthValidator.validateRegisterEmail(email)
         val passwordError =
             AuthValidator.validateRegisterPassword(password)
         val confirmPasswordError =

@@ -3,6 +3,7 @@ package com.example.medtrack.repository
 import com.example.medtrack.model.AuthSession
 import com.example.medtrack.model.AuthUser
 import com.example.medtrack.model.UserRole
+import com.example.medtrack.validation.AuthValidator
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -126,6 +127,14 @@ class FakeAuthRepository(
         email: String,
         password: String
     ): Result<AuthUser> {
+        val emailError = AuthValidator.validateRegisterEmail(email)
+
+        if (emailError != null) {
+            return Result.failure(
+                IllegalArgumentException(emailError)
+            )
+        }
+
         delay(1000)
 
         val normalizedEmail = normalizeEmail(email)

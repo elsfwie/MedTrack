@@ -1,6 +1,7 @@
 package com.example.medtrack.validation
 
 import android.util.Patterns
+import java.util.Locale
 
 object AuthValidator {
 
@@ -17,6 +18,27 @@ object AuthValidator {
             else -> null
         }
     }
+
+    fun validateRegisterEmail(email: String): String? {
+        val trimmedEmail = email.trim()
+        val formatError = validateEmail(trimmedEmail)
+
+        if (formatError != null) {
+            return formatError
+        }
+
+        val domain = trimmedEmail
+            .substringAfterLast('@')
+            .lowercase(Locale.ROOT)
+
+        return when (domain) {
+            "gmail.co" ->
+                "Please verify your email domain. Did you intend to use gmail.com?"
+
+            else -> null
+        }
+    }
+
 
     fun validateLoginPassword(password: String): String? {
         return when {
