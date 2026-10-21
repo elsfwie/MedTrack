@@ -33,7 +33,7 @@ object AuthValidator {
 
         return when (domain) {
             "gmail.co" ->
-                "Please verify your email domain. Did you intend to use gmail.com?"
+                "Did you mean gmail.com?"
 
             else -> null
         }
