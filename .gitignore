@@ -19,5 +19,8 @@ backend/__pycache__/
 backend/.env
 push.bat
 
-# keeps the templ
+# keeps the template example
 !backend/.env.example
+
+# docs
+Dont Include This/
