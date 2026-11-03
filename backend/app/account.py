@@ -1,13 +1,24 @@
-# Caregiver register & login endpoints
+# Caregiver register & login — proxied to Supabase Auth
 
+import os
+
+import requests
+from dotenv import load_dotenv
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import check_password, hash_password, make_token
 from app.db import engine
 
+load_dotenv()
+
 router = APIRouter()
+
+SUPABASE_URL = os.getenv("supabase_url")
+SERVICE_ROLE = os.getenv("supabase_service_role")
+
+# service key never leaves this backend
+HEADERS = {"apikey": SERVICE_ROLE, "Authorization": f"Bearer {SERVICE_ROLE}"}
 
 
 class RegisterIn(BaseModel):
@@ -21,6 +32,10 @@ class LoginIn(BaseModel):
     password: str
 
 
+class RefreshIn(BaseModel):
+    refresh_token: str
+
+
 @router.post("/register", status_code=201)
 def register(data: RegisterIn):
     name = data.name.strip()
@@ -29,26 +44,37 @@ def register(data: RegisterIn):
     if not name or "@" not in email or len(data.password) < 6:
         raise HTTPException(400, "name, a valid email and a password of 6+ characters are required")
 
+    # old rows own their email too, block before supabase leaves an orphan
     with engine.connect() as conn:
         taken = conn.execute(
             text("select 1 from caregivers where email = :email"),
             {"email": email},
         ).first()
 
-        if taken:
-            raise HTTPException(400, "email already registered")
+    if taken:
+        raise HTTPException(400, "email already registered")
 
-        # only the hash goes in, never the password
+    r = requests.post(
+        f"{SUPABASE_URL}/auth/v1/signup",
+        headers=HEADERS,
+        json={"email": email, "password": data.password, "data": {"name": name}},
+        timeout=15,
+    )
+    if r.status_code >= 400:
+        body = r.json() if r.text else {}
+        if "already" in str(body).lower():
+            raise HTTPException(400, "email already registered")
+        raise HTTPException(400, body.get("msg", "signup failed") if isinstance(body, dict) else "signup failed")
+
+    # profile row keys off the supabase user id
+    user = r.json()["user"]
+    with engine.connect() as conn:
         row = conn.execute(
             text(
-                "insert into caregivers (name, email, password_hash) "
-                "values (:name, :email, :password_hash) returning id"
+                "insert into caregivers (id, name, email) "
+                "values (:id, :name, :email) returning id"
             ),
-            {
-                "name": name,
-                "email": email,
-                "password_hash": hash_password(data.password),
-            },
+            {"id": user["id"], "name": name, "email": email},
         ).first()
         conn.commit()
 
@@ -57,16 +83,40 @@ def register(data: RegisterIn):
 
 @router.post("/login")
 def login(data: LoginIn):
-    email = data.email.strip().lower()
-
-    with engine.connect() as conn:
-        row = conn.execute(
-            text("select id, password_hash from caregivers where email = :email"),
-            {"email": email},
-        ).first()
+    r = requests.post(
+        f"{SUPABASE_URL}/auth/v1/token?grant_type=password",
+        headers=HEADERS,
+        json={"email": data.email.strip().lower(), "password": data.password},
+        timeout=15,
+    )
 
     # one same error for wrong email and wrong password
-    if not row or not check_password(data.password, row[1]):
+    if r.status_code >= 400:
         raise HTTPException(401, "wrong email or password")
 
-    return {"access_token": make_token(str(row[0])), "token_type": "bearer"}
+    body = r.json()
+    return {
+        "access_token": body["access_token"],
+        "refresh_token": body["refresh_token"],
+        "token_type": "bearer",
+    }
+
+
+# android hits this when its supabase token runs out (~1h)
+@router.post("/refresh")
+def refresh(data: RefreshIn):
+    r = requests.post(
+        f"{SUPABASE_URL}/auth/v1/token?grant_type=refresh_token",
+        headers=HEADERS,
+        json={"refresh_token": data.refresh_token},
+        timeout=15,
+    )
+    if r.status_code >= 400:
+        raise HTTPException(401, "invalid or expired token")
+
+    body = r.json()
+    return {
+        "access_token": body["access_token"],
+        "refresh_token": body["refresh_token"],
+        "token_type": "bearer",
+    }

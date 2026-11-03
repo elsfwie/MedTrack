@@ -27,7 +27,7 @@ if exist ".venv\Scripts\python.exe" (
 )
 
 set "NEEDS_INSTALL=1"
-".venv\Scripts\python.exe" -c "import fastapi, uvicorn, sqlalchemy, psycopg, pydantic, dotenv, bcrypt, jose" >nul 2>nul
+".venv\Scripts\python.exe" -c "import fastapi, uvicorn, sqlalchemy, psycopg, pydantic, dotenv, requests, jose" >nul 2>nul
 if not errorlevel 1 set "NEEDS_INSTALL=0"
 
 if "%NEEDS_INSTALL%"=="1" (
@@ -48,12 +48,6 @@ if not exist ".env" (
     echo Made .env from template.
 )
 
-findstr /c:"secret_key=<random-hex-string>" ".env" >nul 2>nul
-if errorlevel 1 goto skipkey
-powershell -NoProfile -Command "$k=[guid]::NewGuid().ToString('N'); (Get-Content -LiteralPath '.env') | ForEach-Object { $_.Replace('secret_key=<random-hex-string>', 'secret_key=' + $k) } | Set-Content -LiteralPath '.env' -Encoding ASCII"
-echo Gave this PC its own secret_key. Never share it.
-:skipkey
-
 findstr /c:"password=<your-db-password>" ".env" >nul 2>nul
 if errorlevel 1 goto skippass
 echo.
@@ -66,6 +60,19 @@ powershell -NoProfile -Command "(Get-Content -LiteralPath '.env') | ForEach-Obje
 set "DBPASS="
 echo Password saved.
 :skippass
+
+findstr /c:"supabase_service_role=<your-service-role-key>" ".env" >nul 2>nul
+if errorlevel 1 goto skipkey2
+echo.
+echo Supabase service role key is still the placeholder. Ask your team lead (Supabase dashboard - Settings - API - service_role).
+:askkey
+set "SVCKEY="
+set /p "SVCKEY=Paste it here: "
+if not defined SVCKEY goto askkey
+powershell -NoProfile -Command "(Get-Content -LiteralPath '.env') | ForEach-Object { $_.Replace('supabase_service_role=<your-service-role-key>', 'supabase_service_role=' + $env:SVCKEY) } | Set-Content -LiteralPath '.env' -Encoding ASCII"
+set "SVCKEY="
+echo Service role key saved.
+:skipkey2
 
 echo.
 call .venv\Scripts\activate.bat

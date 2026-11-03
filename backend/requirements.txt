@@ -5,6 +5,6 @@ psycopg[binary]
 pydantic
 pydantic-settings
 python-dotenv
-bcrypt
+requests
 python-jose[cryptography]
 python-multipart

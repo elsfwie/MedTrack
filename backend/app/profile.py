@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import current_user
+from app.security import current_user
 from app.db import engine
 
 router = APIRouter()

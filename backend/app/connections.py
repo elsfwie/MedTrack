@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import current_user
+from app.security import current_user
 from app.db import engine
 
 router = APIRouter()
@@ -28,12 +28,12 @@ def search_caregivers(q: str = "", me: UUID = Depends(current_user)):
                 "select c.id, c.name, c.email, "
                 "case when cn.id is null then null "
                 "when cn.status = 'accepted' then 'accepted' "
-                "when cn.requester_id = :me then 'sent' "
+                "when cn.sender_id = :me then 'sent' "
                 "else 'received' end as status "
                 "from caregivers c "
                 "left join connections cn on cn.status in ('pending', 'accepted') "
-                "and ((cn.requester_id = :me and cn.addressee_id = c.id) "
-                "or (cn.addressee_id = :me and cn.requester_id = c.id)) "
+                "and ((cn.sender_id = :me and cn.receiver_id = c.id) "
+                "or (cn.receiver_id = :me and cn.sender_id = c.id)) "
                 "where c.id <> :me "
                 "and (lower(c.name) like :term or lower(c.email) like :term) "
                 "order by c.name limit 20"
@@ -63,8 +63,8 @@ def send_connection(data: ConnectionIn, me: UUID = Depends(current_user)):
         existing = conn.execute(
             text(
                 "select 1 from connections "
-                "where (requester_id = :me and addressee_id = :other) "
-                "or (requester_id = :other and addressee_id = :me)"
+                "where (sender_id = :me and receiver_id = :other) "
+                "or (sender_id = :other and receiver_id = :me)"
             ),
             {"me": me, "other": data.caregiver_id},
         ).first()
@@ -73,7 +73,7 @@ def send_connection(data: ConnectionIn, me: UUID = Depends(current_user)):
 
         conn.execute(
             text(
-                "insert into connections (requester_id, addressee_id, status) "
+                "insert into connections (sender_id, receiver_id, status) "
                 "values (:me, :other, 'pending')"
             ),
             {"me": me, "other": data.caregiver_id},
@@ -88,12 +88,12 @@ def list_connections(me: UUID = Depends(current_user)):
     with engine.connect() as conn:
         rows = conn.execute(
             text(
-                "select cn.id, cn.status, cn.requester_id, c.id, c.name, c.email "
+                "select cn.id, cn.status, cn.sender_id, c.id, c.name, c.email "
                 "from connections cn "
                 "join caregivers c on c.id = case "
-                "when cn.requester_id = :me then cn.addressee_id "
-                "else cn.requester_id end "
-                "where cn.requester_id = :me or cn.addressee_id = :me "
+                "when cn.sender_id = :me then cn.receiver_id "
+                "else cn.sender_id end "
+                "where cn.sender_id = :me or cn.receiver_id = :me "
                 "order by cn.created_at"
             ),
             {"me": me},
@@ -123,7 +123,7 @@ def accept_connection(connection_id: UUID, me: UUID = Depends(current_user)):
         row = conn.execute(
             text(
                 "update connections set status = 'accepted', updated_at = now() "
-                "where id = :id and addressee_id = :me and status = 'pending' "
+                "where id = :id and receiver_id = :me and status = 'pending' "
                 "returning id"
             ),
             {"id": connection_id, "me": me},
@@ -143,7 +143,7 @@ def decline_connection(connection_id: UUID, me: UUID = Depends(current_user)):
         row = conn.execute(
             text(
                 "delete from connections "
-                "where id = :id and addressee_id = :me and status = 'pending' "
+                "where id = :id and receiver_id = :me and status = 'pending' "
                 "returning id"
             ),
             {"id": connection_id, "me": me},

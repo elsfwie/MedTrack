@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import text
 
-from app.auth import current_user
+from app.security import current_user
 from app.db import engine
 
 router = APIRouter()
@@ -162,8 +162,8 @@ def share_patient(patient_id: UUID, data: ShareIn, me: UUID = Depends(current_us
             text(
                 "select 1 from connections "
                 "where status = 'accepted' "
-                "and ((requester_id = :me and addressee_id = :other) "
-                "or (requester_id = :other and addressee_id = :me))"
+                "and ((sender_id = :me and receiver_id = :other) "
+                "or (sender_id = :other and receiver_id = :me))"
             ),
             {"me": me, "other": data.caregiver_id},
         ).first()
