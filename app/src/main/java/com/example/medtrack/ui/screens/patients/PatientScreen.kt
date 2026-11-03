@@ -10,19 +10,23 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import com.example.medtrack.ui.components.PatientBottomNavigationBar
 import com.example.medtrack.ui.screens.shared.SkeletonScreen
+import com.example.medtrack.ui.theme.MedTrackTheme
 
 
-@Composable
-fun CaregiverPatientsScreen(onItemSelected: (Int) -> Unit) {
-    SkeletonScreen(
-        title = "Patients",
-        isCaregiver = true,
-        selectedIndex = 1,
-        onItemSelected = onItemSelected
-    )
-}
+//@Composable
+//fun CaregiverPatientsScreen(onItemSelected: (Int) -> Unit) {
+//    SkeletonScreen(
+//        title = "Patients",
+//        isCaregiver = true,
+//        selectedIndex = 1,
+//        onItemSelected = onItemSelected
+//    )
+//}
+
+
 @Composable
 fun PatientHomeScreen() {
 
@@ -51,3 +55,11 @@ fun PatientHomeScreen() {
         )
     }
 }
+
+//@Preview(showBackground = true)
+//@Composable
+//fun PreviewPatientScreen () {
+//    MedTrackTheme {
+//        CaregiverPatientsScreen(onItemSelected = {})
+//    }
+//}
