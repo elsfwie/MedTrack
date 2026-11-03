@@ -46,7 +46,7 @@ import com.example.medtrack.ui.screens.profile.CaregiverProfileRoute
 import com.example.medtrack.ui.screens.profile.EditCaregiverProfileScreen
 import com.example.medtrack.ui.screens.patients.CaregiverPatientsScreen
 import com.example.medtrack.ui.screens.shared.CaregiverSharedScreen
-import com.example.medtrack.ui.screens.shared.PatientSharedScreen
+//import com.example.medtrack.ui.screens.shared.PatientSharedScreen
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -343,9 +343,9 @@ private fun MedTrackGraph(
                 )
             }
         } else {
-            composable(NavRoute.PatientShared.route) {
-                PatientSharedScreen(onItemSelected = onPatientTab)
-            }
+//            composable(NavRoute.PatientShared.route) {
+//                PatientSharedScreen(onItemSelected = onPatientTab)
+//            }
             composable(NavRoute.PatientHome.route) {
                 DashboardLeaveHandler()
 

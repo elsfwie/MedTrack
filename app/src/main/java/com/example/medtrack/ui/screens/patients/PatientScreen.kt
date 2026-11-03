@@ -12,7 +12,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.medtrack.ui.components.PatientBottomNavigationBar
-import com.example.medtrack.ui.screens.shared.SkeletonScreen
+//import com.example.medtrack.ui.screens.shared.SkeletonScreen
 import com.example.medtrack.ui.theme.MedTrackTheme
 
 

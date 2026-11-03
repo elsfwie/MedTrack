@@ -28,11 +28,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
-import com.example.medtrack.ui.components.CaregiverBottomNavigationBar
+import com.example.medtrack.ui.components.CaregiverBottomNavigationBar  // <-- dari BottomNavBar.kt
 import com.example.medtrack.ui.components.Header
 import com.example.medtrack.ui.theme.MedTrackTheme
 
-// filtering patient
+// filter pasien
 enum class PatientFilter(val label: String) {
     ALL("All"),
     MY_PATIENT("My Patient"),
@@ -48,30 +48,22 @@ fun CaregiverPatientsScreen(
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedFilter by rememberSaveable { mutableStateOf(PatientFilter.ALL) }
-
-    // State mode search
     var isSearchActive by rememberSaveable { mutableStateOf(false) }
 
     val primaryColor = Color(0xFF568189)
     val secondaryColor = Color(0xFFD5F3F3)
     val tertiaryColor = Color(0xFF0C3740)
-
     val searchBackground = Color(0xFFE2F5F5)
     val searchBorder = Color(0xFFB9DCDD)
-
-    // lepas fokus dari search bar jika tekan arrow
     val focusManager = LocalFocusManager.current
 
     Scaffold(
         topBar = {
-            // animasi search bar
             AnimatedVisibility(
                 visible = !isSearchActive,
                 enter = fadeIn(),
                 exit = fadeOut()
-            ) {
-                Header(title = "Patients")
-            }
+            ) { Header(title = "Patients") }
         },
         bottomBar = {
             AnimatedVisibility(
@@ -79,6 +71,7 @@ fun CaregiverPatientsScreen(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
+                // BottomNavBar.kt -> CaregiverBottomNavigationBar
                 CaregiverBottomNavigationBar(
                     selectedIndex = 1,
                     onItemSelected = onItemSelected
@@ -127,10 +120,8 @@ fun CaregiverPatientsScreen(
                 .padding(horizontal = 24.dp)
                 .animateContentSize()
         ) {
-
             Spacer(modifier = Modifier.height(if (isSearchActive) 16.dp else 22.dp))
 
-            // baris search bar + notif bell
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -138,7 +129,6 @@ fun CaregiverPatientsScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // tombol arrow (jika search bar aktif)
                 AnimatedVisibility(
                     visible = isSearchActive,
                     enter = fadeIn(),
@@ -148,7 +138,7 @@ fun CaregiverPatientsScreen(
                         onClick = {
                             isSearchActive = false
                             searchQuery = ""
-                            focusManager.clearFocus()  // menghilangkan fokus search bar jika klik tombol arrow
+                            focusManager.clearFocus()
                         },
                         modifier = Modifier.size(40.dp)
                     ) {
@@ -160,27 +150,19 @@ fun CaregiverPatientsScreen(
                     }
                 }
 
-                // Search Bar Input Field
                 val interactionSource = remember { MutableInteractionSource() }
                 val isFocused by interactionSource.collectIsFocusedAsState()
 
-                // untuk animasi focus search bar, lepas fokus, dan previewmode untuk tampilan state normal
                 LaunchedEffect(isFocused, searchQuery, previewMode) {
                     if (previewMode) return@LaunchedEffect
-
                     if (isFocused) {
-                        // tekan search bar -> langsung animasi ke atas
-                        if (!isSearchActive) {
-                            isSearchActive = true
-                        }
+                        if (!isSearchActive) isSearchActive = true
                     } else {
-                        // fokus hilang -> keluar dari mode search jika query kosong
-                        if (searchQuery.isEmpty() && isSearchActive) {
-                            isSearchActive = false
-                        }
+                        if (searchQuery.isEmpty() && isSearchActive) isSearchActive = false
                     }
                 }
 
+                // search bar
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
@@ -189,11 +171,7 @@ fun CaregiverPatientsScreen(
                         .weight(1f)
                         .height(48.dp),
                     placeholder = {
-                        Text(
-                            text = "Search",
-                            fontSize = 16.sp,
-                            color = primaryColor
-                        )
+                        Text("Search", fontSize = 16.sp, color = primaryColor)
                     },
                     leadingIcon = {
                         Image(
@@ -215,12 +193,12 @@ fun CaregiverPatientsScreen(
                     )
                 )
 
-                // notifikasi (bell) muncul di luar mdoe search aktif
                 AnimatedVisibility(
                     visible = !isSearchActive,
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
+                    // notification bell
                     IconButton(
                         onClick = onNotificationClick,
                         modifier = Modifier.size(48.dp)
@@ -235,7 +213,6 @@ fun CaregiverPatientsScreen(
                 }
             }
 
-            // filter pasien (akan hilang saat search aktif)
             AnimatedVisibility(
                 visible = !isSearchActive,
                 enter = fadeIn(),
@@ -274,7 +251,6 @@ fun CaregiverPatientsScreen(
                 }
             }
 
-            // isi konten (pesan kondisi kosong)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -293,16 +269,12 @@ fun CaregiverPatientsScreen(
                         val (title, description) = when {
                             activeSearch && searchQuery.isNotBlank() ->
                                 "No Results Found" to "No patients match your search."
-
                             activeSearch ->
                                 "Search Patients" to "Type a name to find your patient."
-
                             selectedFilter == PatientFilter.MY_PATIENT ->
                                 "Empty List" to "You have not added any patient yet."
-
                             selectedFilter == PatientFilter.SHARED_WITH_ME ->
                                 "Empty List" to "No patients have been shared with you."
-
                             else ->
                                 "Empty List" to "You have no patient at this moment."
                         }
@@ -315,7 +287,6 @@ fun CaregiverPatientsScreen(
                                 color = tertiaryColor,
                                 textAlign = TextAlign.Center
                             )
-
                             if (description.isNotEmpty()) {
                                 Spacer(modifier = Modifier.height(6.dp))
                                 Text(
@@ -343,8 +314,9 @@ fun PreviewPatientCaregiver() {
             onItemSelected = {},
             onAddPatientClick = {},
             onNotificationClick = {},
-            // kalo preview true akan emnampikan semua komponen halman,
-            // jika false bisa menjalankan animasi search bar
+            // previewMode bisa true & false.
+            // jika true akan menampilkan halaman normal
+            // jika false maka bisa menampilkan animation search bar
             previewMode = true
         )
     }
