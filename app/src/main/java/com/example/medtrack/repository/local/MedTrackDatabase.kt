@@ -6,10 +6,17 @@ import com.example.medtrack.model.MedicationSchedule
 import com.example.medtrack.model.UserProfile
 
 @Database(
-    entities = [UserProfile::class, MedicationSchedule::class],
-    version = 1,
+    entities = [
+        UserProfile::class,
+        MedicationSchedule::class,
+        PatientEntity::class
+    ],
+    version = 2,
     exportSchema = true
 )
 abstract class MedTrackDatabase : RoomDatabase() {
+
     abstract fun medTrackDao(): MedTrackDao
+
+    abstract fun patientDao(): PatientDao
 }

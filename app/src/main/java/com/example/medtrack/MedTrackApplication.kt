@@ -10,6 +10,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import android.provider.Settings
+import com.example.medtrack.repository.LocalPatientRepository
+import com.example.medtrack.repository.PatientRepository
+import com.example.medtrack.repository.local.DatabaseMigrations
 
 class MedTrackApplication : Application() {
 
@@ -28,11 +31,20 @@ class MedTrackApplication : Application() {
             applicationContext,
             MedTrackDatabase::class.java,
             "medtrack.db"
-        ).build()
+        )
+            .addMigrations(DatabaseMigrations.MIGRATION_1_2)
+            .build()
     }
 
     val localDataRepository: LocalDataRepository by lazy {
         LocalDataRepository(database)
+    }
+
+    val patientRepository: PatientRepository by lazy {
+        LocalPatientRepository(
+            database = database,
+            currentUser = authRepository.currentUser
+        )
     }
 
     val patientDeviceId: String by lazy {
