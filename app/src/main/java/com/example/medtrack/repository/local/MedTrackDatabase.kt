@@ -8,7 +8,7 @@ import com.example.medtrack.model.UserProfile
 @Database(
     entities = [UserProfile::class, MedicationSchedule::class],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class MedTrackDatabase : RoomDatabase() {
     abstract fun medTrackDao(): MedTrackDao
