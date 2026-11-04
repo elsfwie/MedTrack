@@ -68,7 +68,6 @@ fun CaregiverRegisterScreen(
     var confirmPasswordVisible by remember {
         mutableStateOf(false)
     }
-
     val email = uiState.email
     val password = uiState.password
     val confirmPassword = uiState.confirmPassword
@@ -92,6 +91,7 @@ fun CaregiverRegisterScreen(
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(horizontal = 32.dp)
+
     ) {
 
         Spacer(
@@ -119,7 +119,6 @@ fun CaregiverRegisterScreen(
         Spacer(
             modifier = Modifier.height(50.dp)
         )
-
         // email box
         TextField(
             value = email,

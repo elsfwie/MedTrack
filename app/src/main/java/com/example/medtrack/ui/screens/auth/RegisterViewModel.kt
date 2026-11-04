@@ -148,6 +148,7 @@ class RegisterViewModel(
                 _uiState.update {
                     it.copy(isLoading = false)
                 }
+
             }
         }
     }

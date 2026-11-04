@@ -18,6 +18,7 @@ interface AuthRepository {
     ): Result<AuthUser>
 
     suspend fun registerCaregiver(
+        name: String,
         email: String,
         password: String
     ): Result<AuthUser>

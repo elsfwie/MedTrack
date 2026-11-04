@@ -32,7 +32,8 @@ class FakeAuthRepository(
             user = AuthUser(
                 id = "demo_acc_caregiver",
                 role = UserRole.CAREGIVER,
-                email = "caregiver@gmail.com"
+                email = "caregiver@gmail.com",
+                name = "JohnDoe"
             ),
             password = "MedTrack123"
         )
@@ -124,9 +125,14 @@ class FakeAuthRepository(
     }
 
     override suspend fun registerCaregiver(
+        name : String,
         email: String,
         password: String
     ): Result<AuthUser> {
+        val nameError = AuthValidator.validateName(name)
+        if (nameError != null) {
+            return Result.failure(IllegalArgumentException(nameError))
+        }
         val emailError = AuthValidator.validateRegisterEmail(email)
 
         if (emailError != null) {
@@ -148,6 +154,7 @@ class FakeAuthRepository(
         val user = AuthUser(
             id = UUID.randomUUID().toString(),
             role = UserRole.CAREGIVER,
+            name= name.trim(),
             email = normalizedEmail
         )
 
