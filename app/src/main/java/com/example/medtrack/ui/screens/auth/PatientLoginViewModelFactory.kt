@@ -5,7 +5,8 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.medtrack.repository.AuthRepository
 
 class PatientLoginViewModelFactory(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val deviceId: String
 ) : ViewModelProvider.Factory {
 
     override fun <T : ViewModel> create(
@@ -17,7 +18,7 @@ class PatientLoginViewModelFactory(
             )
         ) {
             @Suppress("UNCHECKED_CAST")
-            return PatientLoginViewModel(authRepository) as T
+            return PatientLoginViewModel(authRepository, deviceId) as T
         }
 
         throw IllegalArgumentException("Unknown ViewModel class")

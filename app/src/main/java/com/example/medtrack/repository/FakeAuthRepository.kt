@@ -163,7 +163,11 @@ class FakeAuthRepository(
         return Result.success(user)
     }
 
-    override suspend fun loginPatient(code: String): Result<AuthUser> {
+    override suspend fun loginPatient(
+        code: String,
+        age: Int,
+        deviceId: String
+    ): Result<AuthUser> {
         delay(1000)
 
         if (code != "123456") {

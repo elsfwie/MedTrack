@@ -81,9 +81,20 @@ object AuthValidator {
             code.isBlank() ->
                 "Verification code is required."
 
-            !code.matches(Regex("[0-9]{6}")) ->
-                "Verification code must contain 6 digits."
+            !code.matches(Regex("[0-9A-Fa-f]{6}")) ->
+                "Verification code must contain 6 letters or digits."
 
+            else -> null
+        }
+    }
+
+    fun validatePatientAge(age: String): String? {
+        val parsedAge = age.toIntOrNull()
+
+        return when {
+            age.isBlank() -> "Age is required."
+            parsedAge == null -> "Age must be a whole number."
+            parsedAge < 0 -> "Age must be zero or greater."
             else -> null
         }
     }

@@ -24,7 +24,9 @@ interface AuthRepository {
     ): Result<AuthUser>
 
     suspend fun loginPatient(
-        code: String
+        code: String,
+        age: Int,
+        deviceId: String
     ): Result<AuthUser>
 
     suspend fun logout(): Result<Unit>

@@ -252,7 +252,10 @@ private fun MedTrackGraph(
             composable(NavRoute.PatientLogin.route) {
                 val model: PatientLoginViewModel = viewModel(
                     factory = remember(authRepository) {
-                        PatientLoginViewModelFactory(authRepository)
+                        PatientLoginViewModelFactory(
+                            authRepository = authRepository,
+                            deviceId = application.patientDeviceId
+                        )
                     }
                 )
 
@@ -261,10 +264,9 @@ private fun MedTrackGraph(
                 PatientLoginScreen(
                     uiState = state,
                     onCodeChanged = model::onCodeChanged,
+                    onAgeChanged = model::onAgeChanged,
                     onLoginClick = model::login,
-                    onBackClick = {
-                        navController.popBackStack()
-                    }
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         } else if (user.role == UserRole.CAREGIVER) {

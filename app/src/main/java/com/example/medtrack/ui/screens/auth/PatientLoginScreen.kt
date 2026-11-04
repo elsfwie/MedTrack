@@ -19,6 +19,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,6 +41,7 @@ import com.example.medtrack.ui.theme.MedTrackTheme
 fun PatientLoginScreen(
     uiState: PatientLoginUiState,
     onCodeChanged: (String) -> Unit,
+    onAgeChanged: (String) -> Unit,
     onLoginClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -73,6 +75,27 @@ fun PatientLoginScreen(
         )
 
         Spacer(modifier = Modifier.height(42.dp))
+        OutlinedTextField(
+            value = uiState.age,
+            onValueChange = onAgeChanged,
+            enabled = canInteract,
+            modifier = Modifier.fillMaxWidth(),
+            label = { Text("Patient age") },
+            singleLine = true,
+            isError = uiState.ageError != null,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.NumberPassword,
+                imeAction = ImeAction.Next
+            )
+        )
+
+        uiState.ageError?.let { message ->
+            Text(
+                text = message,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         BasicTextField(
             value = code,
@@ -80,7 +103,9 @@ fun PatientLoginScreen(
                 // Membatasi input ke maksimal enam angka 0–9.
                 if (
                     newValue.length <= 6 &&
-                    newValue.all { it in '0'..'9' }
+                    newValue.all {
+                        it in '0'..'9' || it.uppercaseChar() in 'A'..'F'
+                    }
                 ) {
                     onCodeChanged(newValue)
                 }
@@ -95,7 +120,7 @@ fun PatientLoginScreen(
                 color = Color.Black
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.NumberPassword,
+                keyboardType = KeyboardType.Ascii,
                 imeAction = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(
@@ -190,6 +215,7 @@ fun EnterCodePreview() {
         PatientLoginScreen(
             uiState = PatientLoginUiState(),
             onCodeChanged = {},
+            onAgeChanged = {},
             onLoginClick = {},
             onBackClick = {}
         )
