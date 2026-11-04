@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.example.medtrack.domain.DisplayNameResolver
 
 class RegisterViewModel(
     private val authRepository: AuthRepository
@@ -99,6 +100,7 @@ class RegisterViewModel(
         ) {
             return
         }
+        val name = DisplayNameResolver.fromEmail(email)
 
         _uiState.update {
             it.copy(isLoading = true)
@@ -107,6 +109,7 @@ class RegisterViewModel(
         viewModelScope.launch {
             try {
                 val result = authRepository.registerCaregiver(
+                    name = name,
                     email = email,
                     password = password
                 )

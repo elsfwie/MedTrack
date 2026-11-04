@@ -129,12 +129,7 @@ class FakeAuthRepository(
         email: String,
         password: String
     ): Result<AuthUser> {
-        val nameError = AuthValidator.validateName(name)
-        if (nameError != null) {
-            return Result.failure(IllegalArgumentException(nameError))
-        }
         val emailError = AuthValidator.validateRegisterEmail(email)
-
         if (emailError != null) {
             return Result.failure(
                 IllegalArgumentException(emailError)
