@@ -32,12 +32,6 @@ import com.example.medtrack.ui.components.CaregiverBottomNavigationBar  // <-- d
 import com.example.medtrack.ui.components.Header
 import com.example.medtrack.ui.theme.MedTrackTheme
 
-// pembagian data sharing
-enum class SharingTab(val label: String) {
-    CAREGIVER("Caregiver"),
-    PATIENT("Patients")
-}
-
 @Composable
 fun CaregiverSharedScreen(
     onItemSelected: (Int) -> Unit,
