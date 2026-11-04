@@ -21,6 +21,7 @@ class SessionStore(context: Context) {
     private val userIdKey = stringPreferencesKey("user_id")
     private val roleKey = stringPreferencesKey("role")
     private val emailKey = stringPreferencesKey("login_email")
+    private val nameKey = stringPreferencesKey("user_name")
 
     suspend fun read(): AuthUser? {
         val preferences = dataStore.data.first()
@@ -40,7 +41,8 @@ class SessionStore(context: Context) {
         return AuthUser(
             id = id,
             role = role,
-            email = preferences[emailKey]
+            email = preferences[emailKey],
+            name = preferences[nameKey]
         )
     }
 
@@ -55,6 +57,13 @@ class SessionStore(context: Context) {
                 preferences.remove(emailKey)
             } else {
                 preferences[emailKey] = email
+            }
+
+            val name = user.name
+            if (name == null) {
+                preferences.remove(nameKey)
+            } else {
+                preferences[nameKey] = name
             }
         }
     }

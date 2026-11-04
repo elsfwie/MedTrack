@@ -19,6 +19,7 @@ class LocalDataRepository(
     private suspend fun ensureInitialData(user: AuthUser) {
         database.withTransaction {
             val initialName = when {
+                !user.name.isNullOrBlank() -> user.name.orEmpty()
                 user.role == UserRole.PATIENT -> "Jessica Jane"
                 user.id == "demo_acc_caregiver" -> "John Doe"
                 else -> user.email
