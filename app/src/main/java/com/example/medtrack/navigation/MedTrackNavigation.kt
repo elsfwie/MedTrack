@@ -278,7 +278,12 @@ private fun MedTrackGraph(
                 )
             }
             composable(NavRoute.Patient.route) {
-                CaregiverPatientsScreen(onItemSelected = onCaregiverTab)
+                CaregiverPatientsScreen(
+                    onItemSelected = onCaregiverTab,
+                    onAddPatientClick = {
+                        navController.navigate(NavRoute.AddPatient.route)
+                    }
+                )
             }
 
             composable(NavRoute.CaregiverShared.route) {
