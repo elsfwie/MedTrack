@@ -28,7 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
-import com.example.medtrack.ui.components.CaregiverBottomNavigationBar  // <-- dari BottomNavBar.kt
+import com.example.medtrack.ui.components.CaregiverBottomNavigationBar
 import com.example.medtrack.ui.components.Header
 import com.example.medtrack.ui.theme.MedTrackTheme
 

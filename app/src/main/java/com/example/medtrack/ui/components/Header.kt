@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -17,12 +18,12 @@ import com.example.medtrack.ui.theme.MedTrackTheme
 @Composable
 fun Header(
     title: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBackClick: (() -> Unit)? = null
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.secondary)
             .statusBarsPadding()
             .height(56.dp),
         contentAlignment = Alignment.Center
@@ -32,8 +33,22 @@ fun Header(
             style = MaterialTheme.typography.headlineMedium,
             color = MaterialTheme.colorScheme.tertiary
         )
+
+        // Green Back Button hanya muncul jika onBackClick tersedia.
+        if (onBackClick != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = 24.dp)
+            ) {
+                GreenBackButton(
+                    onBackClick = onBackClick
+                )
+            }
+        }
     }
 }
+
 
 @Preview(showBackground = true)
 @Composable
