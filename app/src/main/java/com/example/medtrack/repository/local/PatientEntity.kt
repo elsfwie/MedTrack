@@ -1,5 +1,6 @@
 package com.example.medtrack.repository.local
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -26,5 +27,11 @@ data class PatientEntity(
     val createdBy: String,
     val name: String,
     val age: Int,
-    val emergencyContact: String?
+    val emergencyContact: String?,
+
+    @ColumnInfo(defaultValue = "'Not specified'")
+    val gender: String = "Not specified",
+
+    @ColumnInfo(defaultValue = "''")
+    val medicalNotes: String = ""
 )

@@ -12,14 +12,18 @@ interface PatientRepository {
     suspend fun addPatient(
         name: String,
         age: Int,
-        emergencyContact: String? = null
+        emergencyContact: String? = null,
+        gender: String = "Not specified",
+        medicalNotes: String = ""
     ): Patient
 
     suspend fun updatePatient(
         patientId: String,
         name: String,
         age: Int,
-        emergencyContact: String? = null
+        emergencyContact: String? = null,
+        gender: String = "Not specified",
+        medicalNotes: String = ""
     )
 
     suspend fun deletePatient(patientId: String)

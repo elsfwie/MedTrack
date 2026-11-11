@@ -47,26 +47,33 @@ class LocalPatientRepository(
         )?.toPatient()
     }
 
+
     override suspend fun addPatient(
         name: String,
         age: Int,
-        emergencyContact: String?
+        emergencyContact: String?,
+        gender: String,
+        medicalNotes: String
     ): Patient {
         val caregiver = requireCaregiver()
         val cleanName = validateNameAndAge(name, age)
+
+        require(gender == "Male" || gender == "Female" ||
+                gender == "Not specified") {
+            "Gender tidak valid."
+        }
 
         val entity = PatientEntity(
             id = UUID.randomUUID().toString(),
             createdBy = caregiver.id,
             name = cleanName,
             age = age,
-            emergencyContact = normalizeContact(emergencyContact)
+            emergencyContact = normalizeContact(emergencyContact),
+            gender = gender,
+            medicalNotes = medicalNotes.trim()
         )
 
         database.withTransaction {
-            // Memastikan parent untuk foreign key tersedia.
-            // insertProfile existing memakai IGNORE, sehingga
-            // profil yang sudah ada tidak ditimpa.
             database.medTrackDao().insertProfile(
                 UserProfile(
                     id = caregiver.id,
@@ -88,13 +95,18 @@ class LocalPatientRepository(
         return entity.toPatient()
     }
 
+
+
     override suspend fun updatePatient(
         patientId: String,
         name: String,
         age: Int,
-        emergencyContact: String?
+        emergencyContact: String?,
+        gender: String,
+        medicalNotes: String
     ) {
         val caregiver = requireCaregiver()
+
         require(patientId.isNotBlank()) {
             "ID pasien tidak boleh kosong."
         }
@@ -106,7 +118,9 @@ class LocalPatientRepository(
             patientId = patientId,
             name = cleanName,
             age = age,
-            emergencyContact = normalizeContact(emergencyContact)
+            emergencyContact = normalizeContact(emergencyContact),
+            gender = gender,
+            medicalNotes = medicalNotes.trim()
         )
 
         check(updatedRows == 1) {
@@ -164,13 +178,16 @@ class LocalPatientRepository(
         return contact?.trim()?.takeIf { it.isNotEmpty() }
     }
 
+
     private fun PatientEntity.toPatient(): Patient {
         return Patient(
             id = id,
             createdBy = createdBy,
             name = name,
             age = age,
-            emergencyContact = emergencyContact
+            emergencyContact = emergencyContact,
+            gender = gender,
+            medicalNotes = medicalNotes
         )
     }
 }

@@ -35,22 +35,28 @@ interface PatientDao {
         patientId: String
     ): PatientEntity?
 
+
     @Query(
         """
-        UPDATE patients
-        SET name = :name,
-            age = :age,
-            emergencyContact = :emergencyContact
-        WHERE id = :patientId AND createdBy = :caregiverId
-        """
+    UPDATE patients
+    SET name = :name,
+        age = :age,
+        emergencyContact = :emergencyContact,
+        gender = :gender,
+        medicalNotes = :medicalNotes
+    WHERE id = :patientId AND createdBy = :caregiverId
+    """
     )
     suspend fun updatePatient(
         caregiverId: String,
         patientId: String,
         name: String,
         age: Int,
-        emergencyContact: String?
+        emergencyContact: String?,
+        gender: String,
+        medicalNotes: String
     ): Int
+
 
     @Query(
         """
