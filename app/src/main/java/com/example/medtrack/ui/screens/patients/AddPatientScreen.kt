@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
 import com.example.medtrack.ui.components.Header
 import com.example.medtrack.ui.theme.MedTrackTheme
+import com.example.medtrack.validation.AuthValidator
 
 // Data yang akan dikirim ketika pasien berhasil ditambahkan.
 data class PatientFormData(
@@ -96,14 +97,19 @@ fun AddPatientScreen(
         mutableStateOf(false)
     }
 
-    // Validasi input.
     val validAge = age.toIntOrNull()?.let {
         it in 0..150
     } ?: false
 
-    val validPhone = phoneNumber
-        .filter { it.isDigit() }
-        .let { it.length in 6..15 }
+    val maxLocalPhoneDigits =
+        AuthValidator.maxLocalPhoneDigits(selectedCountry.code)
+
+    val phoneError = AuthValidator.validateEmergencyContact(
+        localPhone = phoneNumber,
+        countryCode = selectedCountry.code
+    )
+
+    val validPhone = phoneError == null
 
     val isFormValid =
         name.isNotBlank() &&
@@ -393,16 +399,14 @@ fun AddPatientScreen(
                 // Phone number input.
                 OutlinedTextField(
                     value = phoneNumber,
-                    onValueChange = {
-                        if (
-                            it.length <= 15 &&
-                            it.all { char ->
-                                char.isDigit() ||
-                                        char == ' ' ||
-                                        char == '-'
-                            }
-                        ) {
-                            phoneNumber = it
+                    onValueChange = { newValue ->
+                        val hanyaKarakterTelepon = newValue.all { char ->
+                            char.isDigit() || char == ' ' || char == '-'
+                        }
+                        val digits = newValue.filter(Char::isDigit)
+
+                        if (hanyaKarakterTelepon && digits.length <= maxLocalPhoneDigits) {
+                            phoneNumber = digits
                         }
                     },
                     modifier = Modifier

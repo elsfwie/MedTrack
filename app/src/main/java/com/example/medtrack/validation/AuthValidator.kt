@@ -98,4 +98,38 @@ object AuthValidator {
             else -> null
         }
     }
+
+    const val MAX_TOTAL_PHONE_DIGITS = 15
+    const val MIN_LOCAL_PHONE_DIGITS = 6
+
+    fun maxLocalPhoneDigits(countryCode: String): Int {
+        val countryDigits = countryCode.count(Char::isDigit)
+        return (MAX_TOTAL_PHONE_DIGITS - countryDigits).coerceAtLeast(0)
+    }
+
+    fun validateEmergencyContact(
+        localPhone: String,
+        countryCode: String
+    ): String? {
+        val localDigits = localPhone.filter(Char::isDigit)
+        val countryDigits = countryCode.filter(Char::isDigit)
+        val maxLocalDigits =
+            (MAX_TOTAL_PHONE_DIGITS - countryDigits.length).coerceAtLeast(0)
+
+        return when {
+            countryDigits.isBlank() ->
+                "Pilih kode negara."
+
+            localDigits.isBlank() ->
+                "Nomor telepon wajib diisi."
+
+            localDigits.length < MIN_LOCAL_PHONE_DIGITS ->
+                "Nomor telepon minimal 6 digit."
+
+            localDigits.length > maxLocalDigits ->
+                "Nomor untuk kode negara ini maksimal $maxLocalDigits digit."
+
+            else -> null
+        }
+    }
 }
