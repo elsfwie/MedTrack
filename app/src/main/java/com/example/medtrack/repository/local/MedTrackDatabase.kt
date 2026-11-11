@@ -5,13 +5,14 @@ import androidx.room.RoomDatabase
 import com.example.medtrack.model.MedicationSchedule
 import com.example.medtrack.model.UserProfile
 
+
 @Database(
     entities = [
         UserProfile::class,
         MedicationSchedule::class,
         PatientEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class MedTrackDatabase : RoomDatabase() {

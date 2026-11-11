@@ -33,4 +33,26 @@ object DatabaseMigrations {
             )
         }
     }
+
+
+    val MIGRATION_2_3 = object : Migration(2, 3) {
+
+        override fun migrate(db: SupportSQLiteDatabase) {
+
+            db.execSQL(
+                """
+            ALTER TABLE patients
+            ADD COLUMN gender TEXT NOT NULL DEFAULT 'Not specified'
+            """.trimIndent()
+            )
+
+            db.execSQL(
+                """
+            ALTER TABLE patients
+            ADD COLUMN medicalNotes TEXT NOT NULL DEFAULT ''
+            """.trimIndent()
+            )
+        }
+    }
+
 }
