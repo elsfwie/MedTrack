@@ -28,7 +28,7 @@ class LocalDataRepository(
                     ?: "Caregiver"
             }
 
-            val inserted = dao.insertProfile(
+            dao.insertProfile(
                 UserProfile(
                     id = user.id,
                     name = initialName,
@@ -36,33 +36,6 @@ class LocalDataRepository(
                     role = user.role.name
                 )
             )
-
-            if (inserted != -1L) {
-                val date = LocalDate.now().toString()
-
-                dao.insertSchedules(
-                    listOf(
-                        MedicationSchedule(
-                            ownerId = user.id,
-                            id = "demo-0700",
-                            date = date,
-                            medicineName = "Metformin",
-                            dose = "200 mg",
-                            time = "07:00",
-                            status = "Pending"
-                        ),
-                        MedicationSchedule(
-                            ownerId = user.id,
-                            id = "demo-0900",
-                            date = date,
-                            medicineName = "Metformin",
-                            dose = "200 mg",
-                            time = "09:00",
-                            status = "Pending"
-                        )
-                    )
-                )
-            }
         }
     }
 

@@ -27,6 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import com.example.medtrack.R
 import com.example.medtrack.ui.components.CaregiverBottomNavigationBar  // <-- dari BottomNavBar.kt
 import com.example.medtrack.ui.components.Header
@@ -44,7 +46,8 @@ fun CaregiverPatientsScreen(
     onItemSelected: (Int) -> Unit,
     onNotificationClick: () -> Unit = {},
     onAddPatientClick: () -> Unit = {},
-    previewMode: Boolean = false
+    previewMode: Boolean = false,
+    state: PatientListUiState = PatientListUiState(loading = false)
 ) {
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedFilter by rememberSaveable { mutableStateOf(PatientFilter.ALL) }
@@ -56,6 +59,13 @@ fun CaregiverPatientsScreen(
     val searchBackground = Color(0xFFE2F5F5)
     val searchBorder = Color(0xFFB9DCDD)
     val focusManager = LocalFocusManager.current
+    val visiblePatients = state.patients.filter { patient ->
+        selectedFilter != PatientFilter.SHARED_WITH_ME &&
+                patient.name.contains(
+                    other = searchQuery.trim(),
+                    ignoreCase = true
+                )
+    }
 
     Scaffold(
         topBar = {
@@ -257,46 +267,73 @@ fun CaregiverPatientsScreen(
                     .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    AnimatedContent(
-                        targetState = isSearchActive,
-                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                        label = "EmptyStateTextAnimation"
-                    ) { activeSearch ->
-                        val (title, description) = when {
-                            activeSearch && searchQuery.isNotBlank() ->
-                                "No Results Found" to "No patients match your search."
-                            activeSearch ->
-                                "Search Patients" to "Type a name to find your patient."
-                            selectedFilter == PatientFilter.MY_PATIENT ->
-                                "Empty List" to "You have not added any patient yet."
+                when {
+                    state.loading -> {
+                        CircularProgressIndicator()
+                    }
+
+                    state.error != null -> {
+                        Text(
+                            text = state.error,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
+
+                    visiblePatients.isEmpty() -> {
+                        val message = when {
                             selectedFilter == PatientFilter.SHARED_WITH_ME ->
-                                "Empty List" to "No patients have been shared with you."
+                                "No patients have been shared with you."
+
+                            searchQuery.isNotBlank() ->
+                                "No patients match your search."
+
                             else ->
-                                "Empty List" to "You have no patient at this moment."
+                                "You have no patient at this moment."
                         }
 
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text(
-                                text = title,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Medium,
-                                color = tertiaryColor,
-                                textAlign = TextAlign.Center
-                            )
-                            if (description.isNotEmpty()) {
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = description,
-                                    fontSize = 14.sp,
-                                    lineHeight = 20.sp,
-                                    color = primaryColor,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                        Text(
+                            text = message,
+                            color = tertiaryColor,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                top = 16.dp,
+                                bottom = 88.dp
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(
+                                items = visiblePatients,
+                                key = { it.id }
+                            ) { patient ->
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = secondaryColor
+                                    )
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(16.dp)
+                                    ) {
+                                        Text(
+                                            text = patient.name,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color = tertiaryColor
+                                        )
+
+                                        Spacer(Modifier.height(4.dp))
+
+                                        Text(
+                                            text = "${patient.gender} • ${patient.age} tahun",
+                                            color = primaryColor
+                                        )
+                                    }
+                                }
                             }
                         }
                     }
