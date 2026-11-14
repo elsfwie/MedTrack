@@ -3,6 +3,8 @@ import androidx.room.Room
 import com.example.medtrack.repository.LocalDataRepository
 import com.example.medtrack.repository.local.MedTrackDatabase
 import com.example.medtrack.repository.AuthRepository
+import com.example.medtrack.repository.LocalReminderRepository
+import com.example.medtrack.repository.ReminderRepository
 import android.app.Application
 import com.example.medtrack.repository.FakeAuthRepository
 import com.example.medtrack.repository.SessionStore
@@ -93,5 +95,12 @@ class MedTrackApplication : Application() {
                 }
             }
         }
+    }
+
+    val reminderRepository: ReminderRepository by lazy {
+        LocalReminderRepository(
+            database = database,
+            currentUser = authRepository.currentUser
+        )
     }
 }
