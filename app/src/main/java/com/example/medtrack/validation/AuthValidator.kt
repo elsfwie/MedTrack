@@ -12,12 +12,20 @@ object AuthValidator {
             trimmedEmail.isBlank() ->
                 "Email is required."
 
-            !Patterns.EMAIL_ADDRESS.matcher(trimmedEmail).matches() ->
+            !EMAIL_REGEX.matches(trimmedEmail) ->
                 "Please enter a valid email address."
 
             else -> null
         }
     }
+    // Sama dengan android.util.Patterns.EMAIL_ADDRESS, tetapi memakai Regex Kotlin
+    // sehingga dapat dijalankan di unit test JVM (Patterns bernilai null di sana).
+    private val EMAIL_REGEX = Regex(
+        "[a-zA-Z0-9+._%\\-]{1,256}" +
+                "@" +
+                "[a-zA-Z0-9][a-zA-Z0-9\\-]{0,64}" +
+                "(\\.[a-zA-Z0-9][a-zA-Z0-9\\-]{0,25})+"
+    )
 
     fun validateRegisterEmail(email: String): String? {
         val trimmedEmail = email.trim()
