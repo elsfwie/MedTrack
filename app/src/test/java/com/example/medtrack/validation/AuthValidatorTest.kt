@@ -15,7 +15,7 @@ import org.junit.Test
  * Catatan: test ini baru dapat berjalan setelah refactor
  * "ganti android.util.Patterns dengan Regex di AuthValidator".
  */
-class AuthValidatorTes  t {
+class AuthValidatorTest {
 
     // ── validateEmail ───────────────────────────────────────────────────────
 

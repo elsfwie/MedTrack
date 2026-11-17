@@ -10,7 +10,7 @@
 | Anggota (Nama / NIM) | Username GitHub | Tugas testing | Berkas test yang ditulis |
 |----------------------|-----------------|---------------|--------------------------|
 | Brain Hagio Kim/01082240026| Cairo69| | |
-| Elizabeth Florence Wijaya/01082240028| elsfwie| | |
+| Elizabeth Florence Wijaya/01082240028| elsfwie| Persiapan, refactor + unit test AuthValidator, UI test CaregiverLoginScreen, refleksi 2| testutil/FakePatientRepository.kt, testutil/MainDispatcherRule.kt, testutil/TestData.kt, validation/AuthValidatorTest.kt, ui/CaregiverLoginScreenTest.kt|
 | Hana Nisrina/01082240031| Hana| | |
 | Jennifer/01082240029| jefreezesy| | |
 
