@@ -55,6 +55,7 @@ import com.example.medtrack.ui.components.DashboardLeaveHandler
 import com.example.medtrack.ui.app.AppUiState
 import com.example.medtrack.ui.app.AppViewModel
 import com.example.medtrack.ui.app.AppViewModelFactory
+import com.example.medtrack.ui.screens.patients.PatientListViewModel
 
 @Composable
 fun MedTrackNavigation() {
@@ -278,11 +279,24 @@ private fun MedTrackGraph(
                 )
             }
             composable(NavRoute.Patient.route) {
+                val patientListModel: PatientListViewModel = viewModel(
+                    key = "patient-list-${user.id}",
+                    factory = remember(application.patientRepository) {
+                        PatientListViewModel.Factory(
+                            application.patientRepository
+                        )
+                    }
+                )
+
+                val patientListState by patientListModel.uiState
+                    .collectAsStateWithLifecycle()
+
                 CaregiverPatientsScreen(
                     onItemSelected = onCaregiverTab,
                     onAddPatientClick = {
                         navController.navigate(NavRoute.AddPatient.route)
-                    }
+                    },
+                    state = patientListState
                 )
             }
 

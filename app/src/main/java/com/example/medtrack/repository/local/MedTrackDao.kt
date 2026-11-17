@@ -79,4 +79,28 @@ interface MedTrackDao {
         name: String,
         email: String
     ): Int
+
+    @Query(
+        """
+    SELECT * FROM medication_schedules
+    WHERE ownerId = :ownerId AND status = 'Pending'
+    ORDER BY date ASC, time ASC, id ASC
+    """
+    )
+    fun observePendingSchedules(
+        ownerId: String
+    ): Flow<List<MedicationSchedule>>
+
+    @Query(
+        """
+    SELECT * FROM medication_schedules
+    WHERE ownerId = :ownerId AND id = :scheduleId
+    LIMIT 1
+    """
+    )
+    suspend fun getSchedule(
+        ownerId: String,
+        scheduleId: String
+    ): MedicationSchedule?
+
 }

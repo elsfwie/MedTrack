@@ -3,6 +3,8 @@ import androidx.room.Room
 import com.example.medtrack.repository.LocalDataRepository
 import com.example.medtrack.repository.local.MedTrackDatabase
 import com.example.medtrack.repository.AuthRepository
+import com.example.medtrack.repository.LocalReminderRepository
+import com.example.medtrack.repository.ReminderRepository
 import android.app.Application
 import com.example.medtrack.repository.FakeAuthRepository
 import com.example.medtrack.repository.SessionStore
@@ -13,6 +15,11 @@ import android.provider.Settings
 import com.example.medtrack.repository.LocalPatientRepository
 import com.example.medtrack.repository.PatientRepository
 import com.example.medtrack.repository.local.DatabaseMigrations
+import android.util.Log
+import com.example.medtrack.repository.DummyDataInitializer
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 
 class MedTrackApplication : Application() {
 
@@ -56,5 +63,44 @@ class MedTrackApplication : Application() {
             Settings.Secure.ANDROID_ID
         )?.takeIf { it.isNotBlank() }
             ?: error("Android device ID is unavailable.")
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+
+        if (BuildConfig.DEBUG) {
+            val initializer = DummyDataInitializer(
+                database = database,
+                preferences = getSharedPreferences(
+                    "dummy_data",
+                    MODE_PRIVATE
+                )
+            )
+
+            applicationScope.launch {
+                authRepository.currentUser.collect { user ->
+                    if (user != null) {
+                        try {
+                            initializer.initialize(user)
+                        } catch (exception: CancellationException) {
+                            throw exception
+                        } catch (exception: Exception) {
+                            Log.e(
+                                "DummyData",
+                                "Pengisian data dummy gagal.",
+                                exception
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    val reminderRepository: ReminderRepository by lazy {
+        LocalReminderRepository(
+            database = database,
+            currentUser = authRepository.currentUser
+        )
     }
 }
