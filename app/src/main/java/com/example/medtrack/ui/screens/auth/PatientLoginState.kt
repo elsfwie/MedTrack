@@ -7,5 +7,6 @@ data class PatientLoginUiState(
     val ageError: String? = null,
     val loginError: String? = null,
     val isLoading: Boolean = false,
-    val isLoggedIn: Boolean = false
+    val isLoggedIn: Boolean = false,
+    val showAgeDialog: Boolean = false
 )

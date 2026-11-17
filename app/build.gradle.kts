@@ -90,5 +90,15 @@ class RoomSchemaArgProvider(
 }
 
 ksp {
-    arg(RoomSchemaArgProvider(file("schemas")))
+    // KSP arguments cannot contain spaces. gradle property roomSchemaLocation
+    // (machine-local, e.g. a junction) overrides the path when the repo path has one.
+    arg(
+        RoomSchemaArgProvider(
+            File(
+                providers.gradleProperty("roomSchemaLocation")
+                    .orElse(file("schemas").absolutePath)
+                    .get()
+            )
+        )
+    )
 }

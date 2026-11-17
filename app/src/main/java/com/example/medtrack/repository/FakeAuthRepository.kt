@@ -168,21 +168,18 @@ class FakeAuthRepository(
         age: Int,
         deviceId: String
     ): Result<AuthUser> {
-        delay(1000)
-
-        if (code != "123456") {
-            return Result.failure(
-                IllegalArgumentException("Invalid verification code.")
-            )
-        }
-
-        val user = AuthUser(
-            id = "demo-patient-001",
-            role = UserRole.PATIENT
+        // Patient login is real now: it claims the code on the backend and binds this device.
+        val result = PatientAuthApi.claim(
+            code = code,
+            age = age,
+            deviceId = deviceId
         )
 
-        persistSignIn(user)
-        return Result.success(user)
+        result.onSuccess { user ->
+            persistSignIn(user)
+        }
+
+        return result
     }
 
     override suspend fun logout(): Result<Unit> {

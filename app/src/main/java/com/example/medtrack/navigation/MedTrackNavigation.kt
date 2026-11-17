@@ -266,6 +266,8 @@ private fun MedTrackGraph(
                     uiState = state,
                     onCodeChanged = model::onCodeChanged,
                     onAgeChanged = model::onAgeChanged,
+                    onEnterClick = model::onEnterClick,
+                    onDialogDismissed = model::onDialogDismissed,
                     onLoginClick = model::login,
                     onBackClick = { navController.popBackStack() }
                 )

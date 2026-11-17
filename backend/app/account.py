@@ -66,8 +66,9 @@ def register(data: RegisterIn):
             raise HTTPException(400, "email already registered")
         raise HTTPException(400, body.get("msg", "signup failed") if isinstance(body, dict) else "signup failed")
 
-    # profile row keys off the supabase user id
-    user = r.json()["user"]
+    # profile row keys off the supabase user id (some projects wrap it in "user", some return it flat)
+    body = r.json()
+    user = body["user"] if isinstance(body.get("user"), dict) else body
     with engine.connect() as conn:
         row = conn.execute(
             text(

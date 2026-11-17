@@ -41,6 +41,35 @@ class PatientLoginViewModel(
         }
     }
 
+    // Enter only checks the code. The age check happens in the popup, then login() runs.
+    fun onEnterClick() {
+        val currentState = _uiState.value
+
+        if (currentState.isLoading || currentState.isLoggedIn) {
+            return
+        }
+
+        val codeError = AuthValidator.validatePatientCode(currentState.code)
+
+        _uiState.update {
+            it.copy(
+                codeError = codeError,
+                loginError = null,
+                showAgeDialog = codeError == null
+            )
+        }
+    }
+
+    fun onDialogDismissed() {
+        if (_uiState.value.isLoading) {
+            return
+        }
+
+        _uiState.update {
+            it.copy(showAgeDialog = false, loginError = null)
+        }
+    }
+
     fun login() {
         val currentState = _uiState.value
 
@@ -48,20 +77,17 @@ class PatientLoginViewModel(
             return
         }
 
-        val code = currentState.code
-        val codeError = AuthValidator.validatePatientCode(code)
         val parsedAge = currentState.age.toIntOrNull()
         val ageError = AuthValidator.validatePatientAge(currentState.age)
 
         _uiState.update {
             it.copy(
-                codeError = codeError,
                 ageError = ageError,
                 loginError = null
             )
         }
 
-        if (codeError != null || ageError != null || parsedAge == null) {
+        if (ageError != null || parsedAge == null) {
             return
         }
 
@@ -72,7 +98,7 @@ class PatientLoginViewModel(
         viewModelScope.launch {
             try {
                 val result = authRepository.loginPatient(
-                    code = code,
+                    code = currentState.code,
                     age = parsedAge,
                     deviceId = deviceId
                 )
@@ -88,7 +114,8 @@ class PatientLoginViewModel(
                         it.copy(
                             code = "",
                             isLoggedIn = true,
-                            loginError = null
+                            loginError = null,
+                            showAgeDialog = false
                         )
                     }
                 } else {

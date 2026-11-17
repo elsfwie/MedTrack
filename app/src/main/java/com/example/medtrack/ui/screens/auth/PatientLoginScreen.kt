@@ -18,9 +18,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +44,8 @@ fun PatientLoginScreen(
     uiState: PatientLoginUiState,
     onCodeChanged: (String) -> Unit,
     onAgeChanged: (String) -> Unit,
+    onEnterClick: () -> Unit,
+    onDialogDismissed: () -> Unit,
     onLoginClick: () -> Unit,
     onBackClick: () -> Unit
 ) {
@@ -75,28 +79,6 @@ fun PatientLoginScreen(
         )
 
         Spacer(modifier = Modifier.height(42.dp))
-        OutlinedTextField(
-            value = uiState.age,
-            onValueChange = onAgeChanged,
-            enabled = canInteract,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text("Patient age") },
-            singleLine = true,
-            isError = uiState.ageError != null,
-            keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.NumberPassword,
-                imeAction = ImeAction.Next
-            )
-        )
-
-        uiState.ageError?.let { message ->
-            Text(
-                text = message,
-                color = MaterialTheme.colorScheme.error,
-                style = MaterialTheme.typography.bodySmall
-            )
-        }
-
         BasicTextField(
             value = code,
             onValueChange = { newValue ->
@@ -126,7 +108,7 @@ fun PatientLoginScreen(
             keyboardActions = KeyboardActions(
                 onDone = {
                     if (canInteract) {
-                        onLoginClick()
+                        onEnterClick()
                     }
                 }
             ),
@@ -191,7 +173,7 @@ fun PatientLoginScreen(
                     shape = RoundedCornerShape(10.dp)
                 )
                 .clickable(enabled = canInteract) {
-                    onLoginClick()
+                    onEnterClick()
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -205,6 +187,64 @@ fun PatientLoginScreen(
                 style = MaterialTheme.typography.titleLarge
             )
         }
+
+        // Security check popup: the age is asked after the code, in the middle of the screen.
+        if (uiState.showAgeDialog) {
+            AlertDialog(
+                onDismissRequest = onDialogDismissed,
+                title = { Text("Security Check") },
+                text = {
+                    Column {
+                        Text(
+                            text = "Enter the patient's age to make sure the right patient is logging in.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = uiState.age,
+                            onValueChange = onAgeChanged,
+                            enabled = canInteract,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = { Text("Patient age") },
+                            singleLine = true,
+                            isError = uiState.ageError != null,
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.NumberPassword,
+                                imeAction = ImeAction.Done
+                            )
+                        )
+
+                        (uiState.ageError ?: uiState.loginError)?.let { message ->
+                            Text(
+                                text = message,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = onLoginClick,
+                        enabled = canInteract
+                    ) {
+                        Text(
+                            text = if (uiState.isLoading) "Verifying..." else "Verify"
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = onDialogDismissed,
+                        enabled = !uiState.isLoading
+                    ) {
+                        Text("Cancel")
+                    }
+                }
+            )
+        }
     }
 }
 
@@ -216,6 +256,8 @@ fun EnterCodePreview() {
             uiState = PatientLoginUiState(),
             onCodeChanged = {},
             onAgeChanged = {},
+            onEnterClick = {},
+            onDialogDismissed = {},
             onLoginClick = {},
             onBackClick = {}
         )
