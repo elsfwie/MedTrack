@@ -1,6 +1,5 @@
 package com.example.medtrack.validation
 
-import android.util.Patterns
 import java.util.Locale
 
 object AuthValidator {
