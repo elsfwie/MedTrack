@@ -22,7 +22,7 @@ class CaregiverPatientsScreenTest {
             Patient(
                 id = "patient-1",
                 createdBy = "caregiver-test",
-                name = "Budi",
+                name = "Jhon Doe",
                 age = 70,
                 emergencyContact = "+62 81234567890",
                 gender = "Male",
@@ -43,7 +43,7 @@ class CaregiverPatientsScreenTest {
         }
 
         composeTestRule
-            .onNodeWithText("Budi")
+            .onNodeWithText("Jhon Doe")
             .assertIsDisplayed()
 
         composeTestRule
