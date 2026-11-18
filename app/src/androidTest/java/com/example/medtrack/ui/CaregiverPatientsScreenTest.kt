@@ -1,4 +1,4 @@
-package com.example.medtrack
+package com.example.medtrack.ui
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule

@@ -49,7 +49,7 @@ class CaregiverLoginScreenTest {
         hasSetTextAction() and (hasText("Password") or hasContentDescription("Password"))
 
     /** Menampilkan layar dengan state tertentu; callback default tidak melakukan apa-apa. */
-    private fun tampilkan(
+    private fun showScreen(
         uiState: LoginUiState = LoginUiState(),
         onEmailChanged: (String) -> Unit = {},
         onPasswordChanged: (String) -> Unit = {},
@@ -74,8 +74,8 @@ class CaregiverLoginScreenTest {
     // ── Tampilan awal ───────────────────────────────────────────────────────
 
     @Test
-    fun layarLogin_menampilkanFieldEmailPasswordDanTombolLoginAktif() {
-        tampilkan()
+    fun loginScreen_showsEmailPasswordFieldsAndEnabledLoginButton() {
+        showScreen()
 
         composeRule.onNode(fieldEmail).assertIsDisplayed()
         composeRule.onNode(fieldPassword).assertIsDisplayed()
@@ -85,63 +85,63 @@ class CaregiverLoginScreenTest {
     // ── Input pengguna diteruskan lewat callback ────────────────────────────
 
     @Test
-    fun mengetikEmail_memanggilOnEmailChangedDenganTeksYangDiketik() {
-        var emailDiterima = ""
-        tampilkan(onEmailChanged = { emailDiterima = it })
+    fun  typingEmail_callsOnEmailChangedWithTypedText() {
+        var receivedEmail = ""
+        showScreen(onEmailChanged = { receivedEmail = it })
 
         composeRule.onNode(fieldEmail).performTextInput("caregiver@gmail.com")
 
-        assertEquals("caregiver@gmail.com", emailDiterima)
+        assertEquals("caregiver@gmail.com", receivedEmail)
     }
 
     @Test
-    fun mengetikPassword_memanggilOnPasswordChangedDenganTeksYangDiketik() {
-        var passwordDiterima = ""
-        tampilkan(onPasswordChanged = { passwordDiterima = it })
+    fun typingPassword_callsOnPasswordChangedWithTypedText() {
+        var receivedPass = ""
+        showScreen(onPasswordChanged = { receivedPass = it })
 
         composeRule.onNode(fieldPassword).performTextInput("MedTrack123")
 
-        assertEquals("MedTrack123", passwordDiterima)
+        assertEquals("MedTrack123", receivedPass)
     }
 
     @Test
-    fun klikTombolLogin_memanggilOnLoginClick() {
-        var loginDiklik = false
-        tampilkan(
+    fun clickingLoginButton_callsOnLoginClick() {
+        var loginClicked = false
+        showScreen(
             uiState = LoginUiState(email = "caregiver@gmail.com", password = "MedTrack123"),
-            onLoginClick = { loginDiklik = true }
+            onLoginClick = { loginClicked = true }
         )
 
         composeRule.onNode(tombolLogin).performClick()
 
-        assertTrue(loginDiklik)
+        assertTrue(loginClicked)
     }
 
     @Test
-    fun klikTombolBack_memanggilOnBackClick() {
-        var backDiklik = false
-        tampilkan(onBackClick = { backDiklik = true })
+    fun clickingBackButton_callsOnBackClick() {
+        var backClicked = false
+        showScreen(onBackClick = { backClicked = true })
 
         composeRule.onNodeWithContentDescription("Back").performClick()
 
-        assertTrue(backDiklik)
+        assertTrue(backClicked)
     }
 
     @Test
-    fun klikSignUp_memanggilOnSignUpClick() {
-        var signUpDiklik = false
-        tampilkan(onSignUpClick = { signUpDiklik = true })
+    fun clickingSignUp_callsOnSignUpClick() {
+        var signUpClicked = false
+        showScreen(onSignUpClick = { signUpClicked = true })
 
         composeRule.onNodeWithText("Sign Up").performClick()
 
-        assertTrue(signUpDiklik)
+        assertTrue(signUpClicked)
     }
 
     // ── Pesan error dari state ──────────────────────────────────────────────
 
     @Test
-    fun loginGagal_menampilkanPesanErrorDariState() {
-        tampilkan(
+    fun loginFailure_showsErrorMessageFromState() {
+        showScreen(
             uiState = LoginUiState(
                 email = "caregiver@gmail.com",
                 loginError = "Wrong email/password, please try again."
@@ -154,8 +154,8 @@ class CaregiverLoginScreenTest {
     }
 
     @Test
-    fun emailTidakValid_menampilkanPesanErrorEmail() {
-        tampilkan(
+    fun invalidEmail_showsEmailErrorMessage() {
+        showScreen(
             uiState = LoginUiState(
                 email = "abc",
                 emailError = "Please enter a valid email address."
@@ -170,15 +170,15 @@ class CaregiverLoginScreenTest {
     // ── Loading ─────────────────────────────────────────────────────────────
 
     @Test
-    fun saatLoading_tombolMenampilkanLoggingInDanTidakDapatDiklik() {
-        var loginDiklik = false
-        tampilkan(
+    fun whileLoading_buttonShowsLoggingInAndCannotBeClicked() {
+        var loginClicked = false
+        showScreen(
             uiState = LoginUiState(
                 email = "caregiver@gmail.com",
                 password = "MedTrack123",
                 isLoading = true
             ),
-            onLoginClick = { loginDiklik = true }
+            onLoginClick = { loginClicked = true }
         )
 
         composeRule
@@ -187,6 +187,6 @@ class CaregiverLoginScreenTest {
             .assertIsNotEnabled()
             .performClick()
 
-        assertFalse(loginDiklik)
+        assertFalse(loginClicked)
     }
 }

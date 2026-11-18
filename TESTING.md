@@ -14,7 +14,7 @@
 | Hana Nisrina/01082240031| Hana| | |
 | Jennifer/01082240029| jefreezesy| | |
 
-**Link repository:**
+**Link repository:z**
 **Jenis proyek** (centang yang sesuai, boleh lebih dari satu):
 - [ ] Room (data lokal)
 - [ ] Retrofit / REST API
@@ -32,7 +32,7 @@ Centang kondisi proyek Anda **saat ini**. Setiap "Belum" harus diperbaiki
 | 1 | Setiap ViewModel menerima repository lewat **constructor** (bukan membuat sendiri / `getInstance()`) | | | |
 | 2 | Repository punya **interface** (ViewModel bergantung pada interface, bukan `...Impl`) | | | |
 | 3 | ViewModel **tidak** memakai `Context`, `android.net.Uri`, `Log`, `Toast`, `FirebaseFirestore` langsung | | | |
-| 4 | Logika (validasi, filter, hitung, format) ada di **fungsi murni**, bukan di Composable | | | |
+| 4 | Logika (validasi, filter, hitung, format) ada di **fungsi murni**, bukan di Composable | ✔ | | 851865e (HEAD -> pertemuan-13) refactor: replace android.util.Patterns with Regex in AuthValidator|
 | 5 | Screen yang akan diuji **stateless** (menerima state + lambda, bukan ViewModel) | | | |
 | 6 | Semua `Icon`/`IconButton` yang dapat diketuk punya **`contentDescription`** | | | |
 
@@ -82,5 +82,6 @@ Minimal **5 skenario** dari ViewModel proyek Anda. Wajib ada sukses, gagal, dan 
 
 1. **Bug apa yang ditemukan test?** (Jika ada: skenario, penyebab, dan commit perbaikannya.)
 2. **Refactor apa yang Anda lakukan agar kode dapat diuji?** Apa yang paling sulit?
+Sebagian besar kode MedTrack sudah dapat diuji sejak awal: ViewModel menerima repository lewat constructor, setiap repository punya interface, dan screen sudah stateless. Satu-satunya refactor adalah pada `AuthValidator.validateEmail`, yang memakai `android.util.Patterns.EMAIL_ADDRESS`. Kelas Android ini bernilai `null` saat unit test berjalan di JVM, sehingga test validasi email dan `LoginViewModel` akan crash walaupun logikanya benar. Kami menggantinya dengan `Regex` Kotlin dengan pola yang sama, lalu memastikan lewat aplikasi bahwa perilaku login tidak berubah. Bagian tersulit adalah menemukan masalahnya, karena `cek_proyek.sh` hanya memeriksa berkas ViewModel sehingga ketergantungan pada kelas Android di validator tidak terdeteksi otomatis.
 3. **Satu test yang menurut Anda paling bernilai**, dan mengapa (perilaku apa yang dilindunginya)?
 4. **Apa yang belum diuji** dan mengapa? (Jujur; ini bukan pengurang nilai.)
