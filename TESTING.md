@@ -8,12 +8,12 @@
 
 **Nama aplikasi: MedTrack**
 
-| Anggota (Nama / NIM) | Username GitHub | Tugas testing | Berkas test yang ditulis |
-|----------------------|-----------------|---------------|--------------------------|
-| Brain Hagio Kim/01082240026| Cairo69| | |
-| Elizabeth Florence Wijaya/01082240028| elsfwie| Persiapan, refactor + unit test AuthValidator, UI test CaregiverLoginScreen, refleksi 2| testutil/FakePatientRepository.kt, testutil/MainDispatcherRule.kt, testutil/TestData.kt, validation/AuthValidatorTest.kt, ui/CaregiverLoginScreenTest.kt|
-| Hana Nisrina/01082240031| Hana| | |
-| Jennifer/01082240029| jefreezesy| | |
+| Anggota (Nama / NIM) | Username GitHub   | Tugas testing                                                                                 | Berkas test yang ditulis                                                                                                                              |
+|----------------------|-------------------|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Brain Hagio Kim/01082240026| Cairo69           |                                                                                               |                                                                                                                                                       |
+| Elizabeth Florence Wijaya/01082240028| elsfwie           | Persiapan, refactor + unit test AuthValidator, UI test CaregiverLoginScreen, refleksi 2       | testutil/FakePatientRepository.kt, testutil/MainDispatcherRule.kt, testutil/TestData.kt, validation/AuthValidatorTest.kt, ui/CaregiverLoginScreenTest.kt |
+| Hana Nisrina/01082240031| Hana              |                                                                                               |                                                                                                                                                       |
+| Jennifer/01082240029| jefreezesy        | refactor: align test library versions in libs.versions.toml, Unit Test PatientListViewModel, UI Test CaregiverPatientsScreenTest | gradle/libs.versions.toml, com/example/medtrack/PatientListViewModelTest.kt, ui/CaregiverPatientsScreenTest.kt                                        |
 
 **Link repository:** https://github.com/elsfwie/MedTrack/tree/pertemuan-13
 
@@ -40,27 +40,32 @@ Centang kondisi proyek Anda **saat ini**. Setiap "Belum" harus diperbaiki
 
 ## B. Daftar Unit yang Akan Diuji
 
-| Jenis | Nama kelas / fungsi | Berkas | Prioritas (1–3) |
-|-------|---------------------|--------|:---------------:|
-| ViewModel | | | |
-| ViewModel | | | |
-| Fungsi murni | `AuthValidator` (validasi email, password, kode pasien, umur, nomor darurat) | `validation/AuthValidator.kt` | 2 |
-| Mapper | | | |
-| Screen (UI) | `CaregiverLoginScreen` | `ui/screens/auth/CaregiverLoginScreen.kt` | 1 |
-| Screen (UI) | | | |
-| DAO (tantangan) | | | |
+| Jenis | Nama kelas / fungsi                                       | Berkas | Prioritas (1–3) |
+|-------|-----------------------------------------------------------|------|:---------------:|
+| ViewModel | `PatientListViewModel`                                    | `ui/screens/patients/PatientListViewModel.kt`|        1        |
+| ViewModel |                                                           | |                 |
+| Fungsi murni | `AuthValidator` (validasi email, password, kode pasien, umur, nomor darurat) | `validation/AuthValidator.kt` |        2        |
+| Mapper |                                                           | |                 |
+| Screen (UI) | `CaregiverLoginScreen`                                    | `ui/screens/auth/CaregiverLoginScreen.kt` |        1        |
+| Screen (UI) | `CaregiverPatientsScreen`                                 | `ui/screens/patients/CaregiverPatientsScreen.kt`|        1        |
+| DAO (tantangan) |                                                           | |                 |
 
 ## C. Matriks Skenario ViewModel
 
 Minimal **5 skenario** dari ViewModel proyek Anda. Wajib ada sukses, gagal, dan kosong.
 
-| No | ViewModel | Skenario (Given / When / Then) | Jenis | Nama test |
-|----|-----------|--------------------------------|-------|-----------|
-| 1 | | Given … / When … / Then … | Sukses | |
-| 2 | | | Gagal | |
-| 3 | | | Kosong | |
-| 4 | | | Aksi pengguna | |
-| 5 | | | Loading / validasi / … | |
+| No | ViewModel            | Skenario (Given / When / Then) | Jenis                                | Nama test |
+|----|----------------------|--------------------------------|--------------------------------------|----------|
+| 1  | `PatientListViewModel` | Given repository memiliki data pasien / When uiState dikoleksi / Then daftar pasien ditampilkan, loading = false, dan error = null| Sukses                               | emitsPatientsWhenRepositoryReturnsPatients        |
+| 2  |`PatientListViewModel`| Given repository mengalami kegagalan pembacaan data / When uiState dikoleksi / Then state menampilkan pesan error dan daftar pasien kosong| Gagal                                |showsErrorWhenRepositoryFails|
+| 3  |`PatientListViewModel`| Given repository mengembalikan daftar kosong / When uiState dikoleksi / Then daftar pasien kosong tanpa pesan error| Kosong                               |showsEmptyListWhenRepositoryReturnsNoPatients|
+| 4  |`PatientListViewModel`| Given repository awalnya memiliki satu pasien / When data pasien baru ditambahkan melalui repository / Then daftar pasien pada uiState ikut diperbarui| Aksi pengguna                        |updatesPatientListWhenRepositoryDataChanges|
+| 5  |`PatientListViewModel`| Given ViewModel baru dibuat / When state awal diperiksa sebelum data diterima / Then loading = true, kemudian berubah menjadi false setelah data diterima| Loading                              |startsInLoadingStateBeforePatientsAreReceived|
+| 6  |``| (Given / When / Then)| Sukses / Gagal/ Loading / validasi / … |          |
+| 7  |``| (Given / When / Then)| Loading / validasi / …               |          |
+| 8  |``| (Given / When / Then)| Loading / validasi / …               |          |
+| 9  |``|(Given / When / Then) | Loading / validasi / …               |          |
+| 10 |``| (Given / When / Then)| Loading / validasi / …               |          |
 
 **Test double yang dipakai:**
 
@@ -71,11 +76,11 @@ Minimal **5 skenario** dari ViewModel proyek Anda. Wajib ada sukses, gagal, dan 
 
 ## D. Hasil
 
-| Jenis test | Jumlah | Lulus | Perintah |
-|------------|:------:|:-----:|----------|
-| Unit test (JVM) | ... (ini ganti titik2 dengan total test case) (`AuthValidatorTest` 24, dst...)| ... (ini ganti titik2 dengan total test case lolos) (`AuthValidatorTest` 24, dst...) | `./gradlew testDebugUnitTest` |
-| UI test (Compose) | .. (ini ganti titik2 dengan total test case) (`CaregiverLoginScreenTest` 9, dst...) | .. (ini ganti titik2 dengan total test case lolos) (`CaregiverLoginScreenTest` 9, dst...) | `./gradlew connectedDebugAndroidTest` |
-| Integration test (DAO) | | | `./gradlew connectedDebugAndroidTest` |
+| Jenis test |                                  Jumlah                                   |                                   Lulus                                   | Perintah |
+|------------|:-------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|----------|
+| Unit test (JVM) |     29 (`AuthValidatorTest` 24, `PatientListViewModelTest` 5, dst..)      |     29 (`AuthValidatorTest` 24, `PatientListViewModelTest` 5, dst..)      | `./gradlew testDebugUnitTest` |
+| UI test (Compose) | 11 (`CaregiverLoginScreenTest` 9, `CaregiverPatientsScreenTest` 2, dst..) | 11 (`CaregiverLoginScreenTest` 9, `CaregiverPatientsScreenTest` 2, dst..) | `./gradlew connectedDebugAndroidTest` |
+| Integration test (DAO) |                                                                           |                                                                           | `./gradlew connectedDebugAndroidTest` |
 
 - Screenshot hasil test Android Studio: `docs/test-unit.png`, `docs/test-ui.png`
 - Link run GitHub Actions yang **hijau**:
@@ -84,7 +89,14 @@ Minimal **5 skenario** dari ViewModel proyek Anda. Wajib ada sukses, gagal, dan 
 ## E. Refleksi (singkat, 3–5 kalimat per butir)
 
 1. **Bug apa yang ditemukan test?** (Jika ada: skenario, penyebab, dan commit perbaikannya.)
+    
+    Pada proses pengujian PatientListViewModel, belum ditemukan bug implementasi yang dapat dipastikan sebagai kesalahan pada aplikasi. Namun, pengujian berhasil memverifikasi beberapa kondisi penting, seperti ketika repository mengembalikan data pasien, daftar pasien kosong, maupun ketika terjadi kegagalan pembacaan data. Pengujian juga memastikan bahwa perubahan data pada repository dapat diteruskan ke uiState. Dengan demikian, test membantu mendeteksi potensi ketidaksesuaian state sebelum fitur digunakan secara langsung.
+
 2. **Refactor apa yang Anda lakukan agar kode dapat diuji?** Apa yang paling sulit?
-Sebagian besar kode MedTrack sudah dapat diuji sejak awal: ViewModel menerima repository lewat constructor, setiap repository punya interface, dan screen sudah stateless. Satu-satunya refactor adalah pada `AuthValidator.validateEmail`, yang memakai `android.util.Patterns.EMAIL_ADDRESS`. Kelas Android ini bernilai `null` saat unit test berjalan di JVM, sehingga test validasi email dan `LoginViewModel` akan crash walaupun logikanya benar. Kami menggantinya dengan `Regex` Kotlin dengan pola yang sama, lalu memastikan lewat aplikasi bahwa perilaku login tidak berubah. Bagian tersulit adalah menemukan masalahnya, karena `cek_proyek.sh` hanya memeriksa berkas ViewModel sehingga ketergantungan pada kelas Android di validator tidak terdeteksi otomatis.
+
+    Sebagian besar kode MedTrack sudah dapat diuji sejak awal: ViewModel menerima repository lewat constructor, setiap repository punya interface, dan screen sudah stateless. Satu-satunya refactor adalah pada `AuthValidator.validateEmail`, yang memakai `android.util.Patterns.EMAIL_ADDRESS`. Kelas Android ini bernilai `null` saat unit test berjalan di JVM, sehingga test validasi email dan `LoginViewModel` akan crash walaupun logikanya benar. Kami menggantinya dengan `Regex` Kotlin dengan pola yang sama, lalu memastikan lewat aplikasi bahwa perilaku login tidak berubah. Bagian tersulit adalah menemukan masalahnya, karena `cek_proyek.sh` hanya memeriksa berkas ViewModel sehingga ketergantungan pada kelas Android di validator tidak terdeteksi otomatis.
+
 3. **Satu test yang menurut Anda paling bernilai**, dan mengapa (perilaku apa yang dilindunginya)?
+
+
 4. **Apa yang belum diuji** dan mengapa? (Jujur; ini bukan pengurang nilai.)
