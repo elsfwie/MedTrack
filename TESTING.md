@@ -5,7 +5,8 @@
 > Berkas ini ikut dinilai.
 
 **Kelompok: 3**
-**Nama aplikasi: Medtrack**
+
+**Nama aplikasi: MedTrack**
 
 | Anggota (Nama / NIM) | Username GitHub | Tugas testing | Berkas test yang ditulis |
 |----------------------|-----------------|---------------|--------------------------|
@@ -14,9 +15,10 @@
 | Hana Nisrina/01082240031| Hana| | |
 | Jennifer/01082240029| jefreezesy| | |
 
-**Link repository:z**
+**Link repository:** https://github.com/elsfwie/MedTrack/tree/pertemuan-13
+
 **Jenis proyek** (centang yang sesuai, boleh lebih dari satu):
-- [ ] Room (data lokal)
+- [✔] Room (data lokal)
 - [ ] Retrofit / REST API
 - [ ] Firebase (Auth / Firestore / Storage)
 
@@ -29,12 +31,12 @@ Centang kondisi proyek Anda **saat ini**. Setiap "Belum" harus diperbaiki
 
 | No | Pemeriksaan | Sudah | Belum | Commit perbaikan |
 |----|-------------|:-----:|:-----:|------------------|
-| 1 | Setiap ViewModel menerima repository lewat **constructor** (bukan membuat sendiri / `getInstance()`) | | | |
-| 2 | Repository punya **interface** (ViewModel bergantung pada interface, bukan `...Impl`) | | | |
-| 3 | ViewModel **tidak** memakai `Context`, `android.net.Uri`, `Log`, `Toast`, `FirebaseFirestore` langsung | | | |
-| 4 | Logika (validasi, filter, hitung, format) ada di **fungsi murni**, bukan di Composable | ✔ | | 851865e (HEAD -> pertemuan-13) refactor: replace android.util.Patterns with Regex in AuthValidator|
-| 5 | Screen yang akan diuji **stateless** (menerima state + lambda, bukan ViewModel) | | | |
-| 6 | Semua `Icon`/`IconButton` yang dapat diketuk punya **`contentDescription`** | | | |
+| 1 | Setiap ViewModel menerima repository lewat **constructor** (bukan membuat sendiri / `getInstance()`) | ✔ | | |
+| 2 | Repository punya **interface** (ViewModel bergantung pada interface, bukan `...Impl`) | ✔ | | |
+| 3 | ViewModel **tidak** memakai `Context`, `android.net.Uri`, `Log`, `Toast`, `FirebaseFirestore` langsung | ✔ | | |
+| 4 | Logika (validasi, filter, hitung, format) ada di **fungsi murni**, bukan di Composable | | ✔ | 851865e (HEAD -> pertemuan-13) refactor: replace android.util.Patterns with Regex in AuthValidator|
+| 5 | Screen yang akan diuji **stateless** (menerima state + lambda, bukan ViewModel) | ✔ | | |
+| 6 | Semua `Icon`/`IconButton` yang dapat diketuk punya **`contentDescription`** | ✔ | | |
 
 ## B. Daftar Unit yang Akan Diuji
 
@@ -42,9 +44,9 @@ Centang kondisi proyek Anda **saat ini**. Setiap "Belum" harus diperbaiki
 |-------|---------------------|--------|:---------------:|
 | ViewModel | | | |
 | ViewModel | | | |
-| Fungsi murni | | | |
+| Fungsi murni | `AuthValidator` (validasi email, password, kode pasien, umur, nomor darurat) | `validation/AuthValidator.kt` | 2 |
 | Mapper | | | |
-| Screen (UI) | | | |
+| Screen (UI) | `CaregiverLoginScreen` | `ui/screens/auth/CaregiverLoginScreen.kt` | 1 |
 | Screen (UI) | | | |
 | DAO (tantangan) | | | |
 
@@ -64,14 +66,15 @@ Minimal **5 skenario** dari ViewModel proyek Anda. Wajib ada sukses, gagal, dan 
 
 | Dependency asli | Pengganti di test | Jenis (fake/stub/mock) | Alasan |
 |-----------------|-------------------|------------------------|--------|
-| | `Fake…Repository` | fake | |
+| `LocalPatientRepository` (Room) | `FakePatientRepository` | fake | Database asli diganti dengan daftar pasien sederhana yang disimpan di memori, sehingga test bisa langsung dijalankan di laptop tanpa emulator, tanpa database, dan tanpa harus login. Fake ini juga punya "saklar" untuk sengaja membuat kondisi gagal atau loading, yang sulit dibuat kalau memakai database asli. Penggunaan fake repository dikarenakan pengecekan yang akan dilakukan adalah terhadap hasil akhirnya (isi `uiState`), bukan urutan pemanggilan fungsi repository. |
+| `FakeAuthRepository` |  |  |  |
 
 ## D. Hasil
 
 | Jenis test | Jumlah | Lulus | Perintah |
 |------------|:------:|:-----:|----------|
-| Unit test (JVM) | | | `./gradlew testDebugUnitTest` |
-| UI test (Compose) | | | `./gradlew connectedDebugAndroidTest` |
+| Unit test (JVM) | ... (ini ganti titik2 dengan total test case) (`AuthValidatorTest` 24, dst...)| ... (ini ganti titik2 dengan total test case lolos) (`AuthValidatorTest` 24, dst...) | `./gradlew testDebugUnitTest` |
+| UI test (Compose) | .. (ini ganti titik2 dengan total test case) (`CaregiverLoginScreenTest` 9, dst...) | .. (ini ganti titik2 dengan total test case lolos) (`CaregiverLoginScreenTest` 9, dst...) | `./gradlew connectedDebugAndroidTest` |
 | Integration test (DAO) | | | `./gradlew connectedDebugAndroidTest` |
 
 - Screenshot hasil test Android Studio: `docs/test-unit.png`, `docs/test-ui.png`
