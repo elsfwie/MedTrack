@@ -10,7 +10,7 @@
 
 | Anggota (Nama / NIM) | Username GitHub   | Tugas testing                                                                                 | Berkas test yang ditulis                                                                                                                              |
 |----------------------|-------------------|-----------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Brain Hagio Kim/01082240026| Cairo69           |                                                                                               |                                                                                                                                                       |
+| Brain Hagio Kim/01082240026| Cairo69           | Unit Test AddPatientViewModel, Git Action untuk unit test (android-test.yml), refleksi 3, bagian D | ui/screens/patients/AddPatientViewModelTest.kt, .github/workflows/android-test.yml |
 | Elizabeth Florence Wijaya/01082240028| elsfwie           | Persiapan, refactor + unit test AuthValidator, UI test CaregiverLoginScreen, refleksi 2       | testutil/FakePatientRepository.kt, testutil/MainDispatcherRule.kt, testutil/TestData.kt, validation/AuthValidatorTest.kt, ui/CaregiverLoginScreenTest.kt |
 | Hana Nisrina/01082240031 | Hana | Membuat TestAuthRepository, unit test LoginViewModel, dan refleksi 4 | testutil/TestAuthRepository.kt, ui/screens/auth/LoginViewModelTest.kt, TESTING.md |
 | Jennifer/01082240029| jefreezesy        | refactor: align test library versions in libs.versions.toml, Unit Test PatientListViewModel, UI Test CaregiverPatientsScreenTest | gradle/libs.versions.toml, com/example/medtrack/PatientListViewModelTest.kt, ui/CaregiverPatientsScreenTest.kt                                        |
@@ -80,11 +80,12 @@ Minimal **5 skenario** dari ViewModel proyek Anda. Wajib ada sukses, gagal, dan 
 
 | Jenis test |                                  Jumlah                                   |                                   Lulus                                   | Perintah |
 |------------|:-------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|----------|
-| Unit test (JVM) | 37 (`AuthValidatorTest` 24, `PatientListViewModelTest` 5, `LoginViewModelTest` 8) | 37 | `./gradlew testDebugUnitTest` || UI test (Compose) | 11 (`CaregiverLoginScreenTest` 9, `CaregiverPatientsScreenTest` 2, dst..) | 11 (`CaregiverLoginScreenTest` 9, `CaregiverPatientsScreenTest` 2, dst..) | `./gradlew connectedDebugAndroidTest` |
+| Unit test (JVM) | 54 (`AuthValidatorTest` 24, `AddPatientViewModelTest` 12, `LoginViewModelTest` 8, `PatientListViewModelTest` 5, `ReminderMapperTest` 4, `ExampleUnitTest` 1) | 54 | `./gradlew testDebugUnitTest` |
+| UI test (Compose) | 11 (`CaregiverLoginScreenTest` 9, `CaregiverPatientsScreenTest` 2) | 11 | `./gradlew connectedDebugAndroidTest` |
 | Integration test (DAO) |                                                                           |                                                                           | `./gradlew connectedDebugAndroidTest` |
 
-- Screenshot hasil test Android Studio: `docs/test-unit.png`, `docs/test-ui.png`
-- Link run GitHub Actions yang **hijau**:
+- Screenshot hasil test Android Studio: `testingResScreenshot/AddPatientViewModelTest.png` (unit test), screenshot test lain ada di folder yang sama `testingResScreenshot/`
+- Link run GitHub Actions yang **hijau**: https://github.com/elsfwie/MedTrack/actions/runs/44323465831
 - (Bonus) Coverage baris ViewModel: ……… %
 
 ## E. Refleksi (singkat, 3–5 kalimat per butir)
@@ -98,6 +99,8 @@ Minimal **5 skenario** dari ViewModel proyek Anda. Wajib ada sukses, gagal, dan 
     Sebagian besar kode MedTrack sudah dapat diuji sejak awal: ViewModel menerima repository lewat constructor, setiap repository punya interface, dan screen sudah stateless. Satu-satunya refactor adalah pada `AuthValidator.validateEmail`, yang memakai `android.util.Patterns.EMAIL_ADDRESS`. Kelas Android ini bernilai `null` saat unit test berjalan di JVM, sehingga test validasi email dan `LoginViewModel` akan crash walaupun logikanya benar. Kami menggantinya dengan `Regex` Kotlin dengan pola yang sama, lalu memastikan lewat aplikasi bahwa perilaku login tidak berubah. Bagian tersulit adalah menemukan masalahnya, karena `cek_proyek.sh` hanya memeriksa berkas ViewModel sehingga ketergantungan pada kelas Android di validator tidak terdeteksi otomatis.
 
 3. **Satu test yang menurut Anda paling bernilai**, dan mengapa (perilaku apa yang dilindunginya)?
+
+    Test yang paling bernilai adalah `ignoresSecondSubmitWhileSaving`. Test ini memastikan kalau tombol simpan ditekan lebih dari sekali dengan cepat, pasiennya cuma tersimpan satu kali ke database. Ini penting karena data pasien tidak boleh dobel, dan pengguna kadang menekan tombol berulang kalau layarnya terasa lambat. Tanpa test ini, duplikatnya bisa terjadi dan tidak ketahuan karena tampilannya tetap terlihat normal.
 
 
 4. **Apa yang belum diuji** dan mengapa? (Jujur; ini bukan pengurang nilai.)
