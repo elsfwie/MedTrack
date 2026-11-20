@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.lifecycle.ViewModelProvider
 
 class AddPatientViewModel(
     private val repository: PatientRepository
@@ -158,6 +159,55 @@ class AddPatientViewModel(
             } finally {
                 _uiState.update { it.copy(isSaving = false) }
             }
+        }
+    }
+
+    // menerima data, meneruskan, dan menyimpan
+    fun submit(data: PatientFormData) {
+
+        val contactParts = data.emergencyContact
+            .trim()
+            .split(Regex("\\s+"), limit = 2)
+
+        val countryCode = contactParts.firstOrNull()
+            ?.takeIf { it.startsWith("+") }
+            ?: "+62"
+
+        val phoneNumber = contactParts
+            .getOrNull(1)
+            .orEmpty()
+            .filter(Char::isDigit)
+
+        _uiState.update {
+            it.copy(
+                name = data.name,
+                gender = data.gender,
+                age = data.age.toString(),
+                countryCode = countryCode,
+                phoneNumber = phoneNumber,
+                medicalNotes = data.medicalNotes
+            )
+        }
+
+        // jalankan validasi dan simpan data.
+        submit()
+    }
+
+    class Factory(
+        private val repository: PatientRepository
+    ) : ViewModelProvider.Factory {
+
+        override fun <T : ViewModel> create(
+            modelClass: Class<T>
+        ): T {
+            require(
+                modelClass.isAssignableFrom(
+                    AddPatientViewModel::class.java
+                )
+            )
+
+            @Suppress("UNCHECKED_CAST")
+            return AddPatientViewModel(repository) as T
         }
     }
 }

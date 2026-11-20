@@ -56,6 +56,8 @@ import com.example.medtrack.ui.app.AppUiState
 import com.example.medtrack.ui.app.AppViewModel
 import com.example.medtrack.ui.app.AppViewModelFactory
 import com.example.medtrack.ui.screens.patients.PatientListViewModel
+import com.example.medtrack.ui.screens.patients.AddPatientScreen
+import com.example.medtrack.ui.screens.patients.AddPatientViewModel
 
 @Composable
 fun MedTrackNavigation() {
@@ -300,6 +302,45 @@ private fun MedTrackGraph(
                     },
                     state = patientListState
                 )
+            }
+
+            composable(NavRoute.AddPatient.route) {
+                val addPatientModel: AddPatientViewModel = viewModel(
+                    factory = remember(application.patientRepository) {
+                        AddPatientViewModel.Factory(
+                            application.patientRepository
+                        )
+                    }
+                )
+
+                val addPatientState by addPatientModel.uiState
+                    .collectAsStateWithLifecycle()
+
+                // menampilkan form add patient
+                AddPatientScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onAddPatient = addPatientModel::submit
+                )
+
+                // jika berhasil disimpan, state kembali ke halaman patients
+                LaunchedEffect(addPatientState.isSaved) {
+                    if (addPatientState.isSaved) {
+                        navController.popBackStack()
+                    }
+                }
+
+                // menampilkan pesan jika penyimpanan gagal.
+                LaunchedEffect(addPatientState.errorMessage) {
+                    addPatientState.errorMessage?.let { message ->
+                        Toast.makeText(
+                            context,
+                            message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
 
             composable(NavRoute.CaregiverShared.route) {

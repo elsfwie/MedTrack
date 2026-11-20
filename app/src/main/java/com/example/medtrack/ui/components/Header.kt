@@ -24,6 +24,7 @@ fun Header(
     Box(
         modifier = modifier
             .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.secondary)
             .statusBarsPadding()
             .height(56.dp),
         contentAlignment = Alignment.Center
