@@ -134,7 +134,7 @@ fun SelectRoleScreen(onConfirm: (UserRole) -> Unit) {
             // Splash page - inactive
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(6.dp)
                     .background(
                         color = Color(0xFFB5C4C4),
                         shape = CircleShape
@@ -144,7 +144,7 @@ fun SelectRoleScreen(onConfirm: (UserRole) -> Unit) {
             // Select role page - active
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(6.dp)
                     .background(
                         color = MaterialTheme.colorScheme.tertiary,
                         shape = CircleShape
@@ -161,7 +161,7 @@ fun SelectRoleScreen(onConfirm: (UserRole) -> Unit) {
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(56.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(20.dp)
@@ -178,7 +178,8 @@ fun SelectRoleScreen(onConfirm: (UserRole) -> Unit) {
             Text(
                 text = "Confirm",
                 color = MaterialTheme.colorScheme.background,
-                style = MaterialTheme.typography.headlineMedium
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

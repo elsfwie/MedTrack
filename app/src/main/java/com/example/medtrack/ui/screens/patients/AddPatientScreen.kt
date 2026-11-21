@@ -3,9 +3,12 @@ package com.example.medtrack.ui.screens.patients
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,11 +16,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
@@ -66,8 +72,8 @@ private val fieldColor = Color(0xFFEEF9F9)
 private fun PatientFieldLabel(text: String) {
     Text(
         text = text,
-        fontSize = 16.sp,
-        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.Medium,
         color = tertiaryColor
     )
 }
@@ -92,7 +98,6 @@ fun AddPatientScreen(
     var showCountryMenu by remember {
         mutableStateOf(false)
     }
-
     var showGenderMenu by remember {
         mutableStateOf(false)
     }
@@ -132,7 +137,7 @@ fun AddPatientScreen(
                     .navigationBarsPadding()
                     .padding(
                         horizontal = 24.dp,
-                        vertical = 16.dp
+                        vertical = 12.dp
                     )
             ) {
                 Button(
@@ -155,8 +160,9 @@ fun AddPatientScreen(
                     enabled = isFormValid,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(18.dp),
+                        .height(46.dp),
+                    shape = RoundedCornerShape(14.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = primaryColor,
                         contentColor = Color.White,
@@ -168,7 +174,7 @@ fun AddPatientScreen(
                 ) {
                     Text(
                         text = "Add Patient",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -189,7 +195,7 @@ fun AddPatientScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 20.dp, bottom = 28.dp),
+                    .padding(top = 16.dp, bottom = 22.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Image(
@@ -197,69 +203,47 @@ fun AddPatientScreen(
                         id = R.drawable.profile
                     ),
                     contentDescription = "Default Patient Profile",
-                    modifier = Modifier.size(150.dp)
+                    modifier = Modifier.size(88.dp)
                 )
             }
 
-            // placeholder nama
+            // NAME
             PatientFieldLabel("Name")
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            OutlinedTextField(
+            CompactPatientTextField(
                 value = name,
                 onValueChange = { name = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp),
-                placeholder = {
-                    Text(
-                        "e.g John Doe",
-                        fontSize = 14.sp,
-                        color = primaryColor
-                    )
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = patientFieldColors()
+                placeholder = "e.g John Doe",
+                modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(22.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // GENDER AND AGE
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(24.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
 
                 Column(modifier = Modifier.weight(1f)) {
                     PatientFieldLabel("Gender")
 
-                    Spacer(modifier = Modifier.height(5.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     Box {
-                        OutlinedTextField(
+                        CompactPatientTextField(
                             value = gender,
                             onValueChange = {},
                             readOnly = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(52.dp),
-                            placeholder = {
-                                Text(
-                                    "Select Gender",
-                                    fontSize = 14.sp,
-                                    color = primaryColor
-                                )
-                            },
+                            placeholder = "Select Gender",
                             trailingIcon = {
                                 ExposedDropdownMenuDefaults.TrailingIcon(
                                     expanded = showGenderMenu
                                 )
                             },
-                            singleLine = true,
-                            shape = RoundedCornerShape(12.dp),
-                            colors = patientFieldColors()
+                            modifier = Modifier.fillMaxWidth()
                         )
 
                         // Transparent clickable area for dropdown.
@@ -284,7 +268,8 @@ fun AddPatientScreen(
                                     text = {
                                         Text(
                                             option,
-                                            color = tertiaryColor
+                                            color = tertiaryColor,
+                                            fontSize = 13.sp
                                         )
                                     },
                                     onClick = {
@@ -300,41 +285,30 @@ fun AddPatientScreen(
                 Column(modifier = Modifier.weight(1f)) {
                     PatientFieldLabel("Age")
 
-                    Spacer(modifier = Modifier.height(5.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
-                    OutlinedTextField(
+                    CompactPatientTextField(
                         value = age,
                         onValueChange = {
                             if (it.length <= 3 && it.all(Char::isDigit)) {
                                 age = it
                             }
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(52.dp),
-                        placeholder = {
-                            Text(
-                                "e.g 50",
-                                fontSize = 14.sp,
-                                color = primaryColor
-                            )
-                        },
+                        placeholder = "e.g 50",
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number
                         ),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = patientFieldColors()
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // EMERGENCY CONTACT
             PatientFieldLabel("Emergency Contact")
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -344,21 +318,16 @@ fun AddPatientScreen(
 
                 // Country selector.
                 Box {
-                    OutlinedTextField(
+                    CompactPatientTextField(
                         value = "${selectedCountry.flag} ${selectedCountry.code}",
                         onValueChange = {},
                         readOnly = true,
-                        modifier = Modifier
-                            .width(130.dp)
-                            .height(52.dp),
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(
                                 expanded = showCountryMenu
                             )
                         },
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = patientFieldColors()
+                        modifier = Modifier.width(118.dp)
                     )
 
                     Box(
@@ -384,7 +353,7 @@ fun AddPatientScreen(
                                     Text(
                                         "${country.flag} ${country.name} (${country.code})",
                                         color = tertiaryColor,
-                                        fontSize = 14.sp
+                                        fontSize = 13.sp
                                     )
                                 },
                                 onClick = {
@@ -397,7 +366,7 @@ fun AddPatientScreen(
                 }
 
                 // Phone number input.
-                OutlinedTextField(
+                CompactPatientTextField(
                     value = phoneNumber,
                     onValueChange = { newValue ->
                         val hanyaKarakterTelepon = newValue.all { char ->
@@ -409,52 +378,101 @@ fun AddPatientScreen(
                             phoneNumber = digits
                         }
                     },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp),
-                    placeholder = {
-                        Text(
-                            "812-3456-7890",
-                            fontSize = 14.sp,
-                            color = primaryColor
-                        )
-                    },
+                    placeholder = "812-3456-7890",
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Phone
                     ),
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = patientFieldColors()
+                    modifier = Modifier.weight(1f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // MEDICAL NOTES (OPTIONAL)
             PatientFieldLabel("Medical Notes (Optional)")
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            OutlinedTextField(
+            CompactPatientTextField(
                 value = medicalNotes,
                 onValueChange = { medicalNotes = it },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp),
-                placeholder = {
-                    Text(
-                        "e.g Felt mild dizziness",
-                        fontSize = 14.sp,
-                        color = primaryColor
-                    )
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = patientFieldColors()
+                placeholder = "e.g Felt mild dizziness",
+                singleLine = false,
+                fieldHeight = 110.dp,
+                modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(modifier = Modifier.height(24.dp))
         }
     }
+}
+
+// Reusable compact input box tanpa vertical padding bawaan yang memotong teks.
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CompactPatientTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    placeholder: String = "",
+    readOnly: Boolean = false,
+    singleLine: Boolean = true,
+    fieldHeight: Dp = 44.dp,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    trailingIcon: (@Composable () -> Unit)? = null
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val colors = patientFieldColors()
+
+    BasicTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = modifier.height(fieldHeight),
+        readOnly = readOnly,
+        singleLine = singleLine,
+        keyboardOptions = keyboardOptions,
+        interactionSource = interactionSource,
+        textStyle = TextStyle(
+            color = tertiaryColor,
+            fontSize = 13.sp
+        ),
+        cursorBrush = SolidColor(tertiaryColor),
+        decorationBox = { innerTextField ->
+            OutlinedTextFieldDefaults.DecorationBox(
+                value = value,
+                innerTextField = innerTextField,
+                enabled = true,
+                singleLine = singleLine,
+                visualTransformation = VisualTransformation.None,
+                interactionSource = interactionSource,
+                placeholder = if (placeholder.isNotEmpty()) {
+                    {
+                        Text(
+                            text = placeholder,
+                            fontSize = 13.sp,
+                            color = primaryColor,
+                            maxLines = if (singleLine) 1 else 3
+                        )
+                    }
+                } else null,
+                trailingIcon = trailingIcon,
+                contentPadding = PaddingValues(
+                    horizontal = 12.dp,
+                    vertical = if (singleLine) 0.dp else 10.dp
+                ),
+                colors = colors,
+                container = {
+                    OutlinedTextFieldDefaults.Container(
+                        enabled = true,
+                        isError = false,
+                        interactionSource = interactionSource,
+                        colors = colors,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                }
+            )
+        }
+    )
 }
 
 // Shared colors for form fields.
@@ -477,8 +495,7 @@ private fun Modifier.clickableWithoutRipple(
     onClick: () -> Unit
 ): Modifier = this.then(
     Modifier.clickable(
-        interactionSource = androidx.compose.foundation.interaction
-            .MutableInteractionSource(),
+        interactionSource = MutableInteractionSource(),
         indication = null,
         onClick = onClick
     )

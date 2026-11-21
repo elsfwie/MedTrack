@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import com.example.medtrack.R
 import com.example.medtrack.ui.theme.MedTrackTheme
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun SplashScreen( onGetStartedClick: () -> Unit) {
@@ -69,7 +71,7 @@ fun SplashScreen( onGetStartedClick: () -> Unit) {
             // halaman 1 active
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(6.dp)
                     .background(
                         color = MaterialTheme.colorScheme.tertiary,
                         shape = CircleShape
@@ -79,7 +81,7 @@ fun SplashScreen( onGetStartedClick: () -> Unit) {
             // halaman 2 inactive
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(6.dp)
                     .background(
                         color = Color(0xFFB5C4C4),
                         shape = CircleShape
@@ -100,7 +102,7 @@ fun SplashScreen( onGetStartedClick: () -> Unit) {
                     end = 30.dp
                 )
                 .fillMaxWidth()
-                .height(70.dp)
+                .height(56.dp)
                 .background(
                     color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(20.dp)
@@ -111,7 +113,8 @@ fun SplashScreen( onGetStartedClick: () -> Unit) {
             Text(
                 text = "Get Started",
                 color = MaterialTheme.colorScheme.background,
-                style = MaterialTheme.typography.headlineMedium
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }

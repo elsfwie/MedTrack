@@ -24,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.medtrack.model.AuthUser
 import com.example.medtrack.repository.LocalDataRepository
-import com.example.medtrack.ui.components.BackButton
 import com.example.medtrack.ui.components.Header
 
 @Composable
@@ -47,7 +46,16 @@ fun EditCaregiverProfileScreen(
     }
 
     Scaffold(
-        topBar = { Header(title = "Edit Profile") },
+        topBar = {
+            Header(
+                title = "Edit Profile",
+                onBackClick = {
+                    if (!state.isSaving) {
+                        onBackClick()
+                    }
+                }
+            )
+        },
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(
@@ -59,14 +67,6 @@ fun EditCaregiverProfileScreen(
                 .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            BackButton(
-                onBackClick = {
-                    if (!state.isSaving) {
-                        onBackClick()
-                    }
-                }
-            )
-
             if (state.isLoading) {
                 Text("Loading...")
             } else {

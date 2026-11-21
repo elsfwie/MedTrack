@@ -11,8 +11,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.medtrack.ui.theme.MedTrackTheme
 
 @Composable
@@ -26,12 +28,13 @@ fun Header(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondary)
             .statusBarsPadding()
-            .height(56.dp),
+            .height(46.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.headlineMedium,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.tertiary
         )
 

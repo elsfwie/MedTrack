@@ -13,16 +13,20 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,7 +35,10 @@ import com.example.medtrack.R
 import com.example.medtrack.ui.components.CaregiverBottomNavigationBar
 import com.example.medtrack.ui.components.Header
 import com.example.medtrack.ui.theme.MedTrackTheme
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.ExperimentalMaterial3Api
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CaregiverSharedScreen(
     onItemSelected: (Int) -> Unit,
@@ -63,7 +70,7 @@ fun CaregiverSharedScreen(
                 enter = fadeIn(),
                 exit = fadeOut()
             ) {
-                // BottomNavBar.kt -> CaregiverBottomNavigationBar
+
                 CaregiverBottomNavigationBar(
                     selectedIndex = 2,
                     onItemSelected = onItemSelected
@@ -123,34 +130,58 @@ fun CaregiverSharedScreen(
                 }
 
                 // search bar
-                OutlinedTextField(
+                BasicTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    interactionSource = interactionSource,
                     modifier = Modifier
                         .weight(1f)
-                        .height(48.dp),
-                    placeholder = {
-                        Text("Search", fontSize = 16.sp, color = primaryColor)
-                    },
-                    leadingIcon = {
-                        Image(
-                            painter = painterResource(id = R.drawable.search),
-                            contentDescription = "Search",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    },
+                        .height(40.dp),
+                    interactionSource = interactionSource,
                     singleLine = true,
-                    shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedContainerColor = searchBackground,
-                        unfocusedContainerColor = searchBackground,
-                        focusedBorderColor = searchBorder,
-                        unfocusedBorderColor = searchBorder,
-                        cursorColor = tertiaryColor,
-                        focusedTextColor = tertiaryColor,
-                        unfocusedTextColor = tertiaryColor
-                    )
+                    textStyle = TextStyle(
+                        color = tertiaryColor,
+                        fontSize = 12.sp
+                    ),
+                    cursorBrush = SolidColor(tertiaryColor),
+                    decorationBox = { innerTextField ->
+                        OutlinedTextFieldDefaults.DecorationBox(
+                            value = searchQuery,
+                            innerTextField = innerTextField,
+                            enabled = true,
+                            singleLine = true,
+                            visualTransformation = VisualTransformation.None,
+                            interactionSource = interactionSource,
+                            placeholder = {
+                                Text(
+                                    text = "Search",
+                                    fontSize = 14.sp,
+                                    color = primaryColor
+                                )
+                            },
+                            leadingIcon = {
+                                Image(
+                                    painter = painterResource(id = R.drawable.search),
+                                    contentDescription = "Search",
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                            container = {
+                                OutlinedTextFieldDefaults.Container(
+                                    enabled = true,
+                                    isError = false,
+                                    interactionSource = interactionSource,
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedContainerColor = searchBackground,
+                                        unfocusedContainerColor = searchBackground,
+                                        focusedBorderColor = searchBorder,
+                                        unfocusedBorderColor = searchBorder
+                                    ),
+                                    shape = RoundedCornerShape(14.dp)
+                                )
+                            }
+                        )
+                    }
                 )
 
                 AnimatedVisibility(
@@ -166,7 +197,7 @@ fun CaregiverSharedScreen(
                         Image(
                             painter = painterResource(id = R.drawable.bell),
                             contentDescription = "Notifications",
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(26.dp),
                             contentScale = ContentScale.Fit
                         )
                     }

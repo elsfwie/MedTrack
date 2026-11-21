@@ -14,8 +14,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
 import com.example.medtrack.ui.theme.MedTrackTheme
 
@@ -28,7 +30,7 @@ fun MedTrackHeader() {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.secondary)
             .statusBarsPadding()    // memberi ruang untuk jam, wifi, battery, dll
-            .height(56.dp),
+            .height(44.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -38,13 +40,14 @@ fun MedTrackHeader() {
                 id = R.drawable.logo
             ),
             contentDescription = "MedTrack Logo",
-            modifier = Modifier.size(55.dp)
+            modifier = Modifier.size(48.dp)
         )
 
 
         Text(
             text = "MedTrack",
-            style = MaterialTheme.typography.headlineMedium,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.tertiary
         )
     }

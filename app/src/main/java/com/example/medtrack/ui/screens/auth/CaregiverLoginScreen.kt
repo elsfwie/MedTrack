@@ -4,9 +4,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,13 +19,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -33,15 +36,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -53,6 +55,7 @@ private val PlaceholderColor = Color(0xFF95AAAA)
 private val ErrorColor = Color(0xFFFF0000)
 private val BorderColor = Color(0xFF95AAAA)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CaregiverLoginScreen(
     uiState: LoginUiState,
@@ -76,6 +79,25 @@ fun CaregiverLoginScreen(
     val showError = passwordMessage != null
     val canInteract = !uiState.isLoading && !uiState.isLoggedIn
 
+    val emailInteractionSource = remember { MutableInteractionSource() }
+    val passwordInteractionSource = remember { MutableInteractionSource() }
+
+    val loginFieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = MaterialTheme.colorScheme.secondary,
+        unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
+        disabledContainerColor = MaterialTheme.colorScheme.secondary,
+
+        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent,
+        disabledIndicatorColor = Color.Transparent,
+
+        cursorColor = MaterialTheme.colorScheme.primary,
+
+        focusedTextColor = Color.Black,
+        unfocusedTextColor = Color.Black,
+        disabledTextColor = Color.Black.copy(alpha = 0.6f)
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -90,7 +112,7 @@ fun CaregiverLoginScreen(
         )
 
         // menampilkan arrow back button
-        BackButton (onBackClick = onBackClick)
+        BackButton(onBackClick = onBackClick)
 
         Spacer(
             modifier = Modifier.height(62.dp)
@@ -110,48 +132,53 @@ fun CaregiverLoginScreen(
         )
 
         // box email
-        TextField(
+        BasicTextField(
             value = email,
             onValueChange = onEmailChanged,
             enabled = canInteract,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp),
-            placeholder = {
-                Text(
-                    text = "Email",
-                    color = PlaceholderColor,
-                    fontSize = 18.sp
-                )
-            },
-            leadingIcon = {
-                Image(
-                    painter = painterResource(
-                        id = R.drawable.email
-                    ),
-                    contentDescription = "Email",
-                    modifier = Modifier.size(27.dp)
-                )
-            },
+                .height(46.dp),
             singleLine = true,
-            shape = RoundedCornerShape(8.dp),
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                disabledContainerColor = MaterialTheme.colorScheme.secondary,
-
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-
-                cursorColor = MaterialTheme.colorScheme.primary,
-
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
+            interactionSource = emailInteractionSource,
+            textStyle = TextStyle(
+                color = Color.Black,
+                fontSize = 14.sp
             ),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Email,
                 imeAction = ImeAction.Next
-            )
+            ),
+            decorationBox = { innerTextField ->
+                TextFieldDefaults.DecorationBox(
+                    value = email,
+                    innerTextField = innerTextField,
+                    enabled = canInteract,
+                    singleLine = true,
+                    visualTransformation = VisualTransformation.None,
+                    interactionSource = emailInteractionSource,
+                    placeholder = {
+                        Text(
+                            text = "Email",
+                            color = PlaceholderColor,
+                            fontSize = 14.sp
+                        )
+                    },
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(
+                                id = R.drawable.email
+                            ),
+                            contentDescription = "Email",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = loginFieldColors,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                )
+            }
         )
 
         // tampilkan pesan email error
@@ -165,61 +192,24 @@ fun CaregiverLoginScreen(
         }
 
         Spacer(
-            modifier = Modifier.height(8.dp)
+            modifier = Modifier.height(10.dp)
         )
 
         // box password
-        TextField(
+        BasicTextField(
             value = password,
             onValueChange = onPasswordChanged,
             enabled = canInteract,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(60.dp),
-
-            placeholder = {
-                Text(
-                    text = "Password",
-                    color = PlaceholderColor,
-                    fontSize = 18.sp
-                )
-            },
-
-            // icon key sebelah kiri
-            leadingIcon = {
-                Image(
-                    painter = painterResource(
-                        id = R.drawable.key
-                    ),
-                    contentDescription = "Password",
-                    modifier = Modifier.size(27.dp)
-                )
-            },
-
-            // icon eye sebelah kanan
-            trailingIcon = {
-                Image(
-                    painter = painterResource(
-                        id = if (passwordVisible) {
-                            R.drawable.visible
-                        } else {
-                            R.drawable.not_visible
-                        }
-                    ),
-                    contentDescription = if (passwordVisible) {
-                        "Hide password"
-                    } else {
-                        "Show password"
-                    },
-                    modifier = Modifier
-                        .size(25.dp)
-                        .clickable {
-                            passwordVisible = !passwordVisible
-                        }
-                )
-            },
-
+                .height(46.dp),
             singleLine = true,
+            interactionSource = passwordInteractionSource,
+            textStyle = TextStyle(
+                color = Color.Black,
+                fontSize = 14.sp
+            ),
+            cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
 
             // menentukan password ditampilkan / disembunyikan
             visualTransformation = if (passwordVisible) {
@@ -227,22 +217,6 @@ fun CaregiverLoginScreen(
             } else {
                 PasswordVisualTransformation()
             },
-
-            shape = RoundedCornerShape(8.dp),
-
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.secondary,
-                unfocusedContainerColor = MaterialTheme.colorScheme.secondary,
-                disabledContainerColor = MaterialTheme.colorScheme.secondary,
-
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-
-                cursorColor = MaterialTheme.colorScheme.primary,
-
-                focusedTextColor = Color.Black,
-                unfocusedTextColor = Color.Black
-            ),
 
             keyboardOptions = KeyboardOptions(
                 keyboardType = KeyboardType.Password,
@@ -255,7 +229,67 @@ fun CaregiverLoginScreen(
                         onLoginClick()
                     }
                 }
-            )
+            ),
+
+            decorationBox = { innerTextField ->
+                TextFieldDefaults.DecorationBox(
+                    value = password,
+                    innerTextField = innerTextField,
+                    enabled = canInteract,
+                    singleLine = true,
+                    visualTransformation = if (passwordVisible) {
+                        VisualTransformation.None
+                    } else {
+                        PasswordVisualTransformation()
+                    },
+                    interactionSource = passwordInteractionSource,
+                    placeholder = {
+                        Text(
+                            text = "Password",
+                            color = PlaceholderColor,
+                            fontSize = 14.sp
+                        )
+                    },
+
+                    // icon key sebelah kiri
+                    leadingIcon = {
+                        Image(
+                            painter = painterResource(
+                                id = R.drawable.key
+                            ),
+                            contentDescription = "Password",
+                            modifier = Modifier.size(20.dp)
+                        )
+                    },
+
+                    // icon eye sebelah kanan
+                    trailingIcon = {
+                        Image(
+                            painter = painterResource(
+                                id = if (passwordVisible) {
+                                    R.drawable.visible
+                                } else {
+                                    R.drawable.not_visible
+                                }
+                            ),
+                            contentDescription = if (passwordVisible) {
+                                "Hide password"
+                            } else {
+                                "Show password"
+                            },
+                            modifier = Modifier
+                                .size(20.dp)
+                                .clickable {
+                                    passwordVisible = !passwordVisible
+                                }
+                        )
+                    },
+
+                    shape = RoundedCornerShape(10.dp),
+                    colors = loginFieldColors,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp)
+                )
+            }
         )
 
         // error message incorrect password
@@ -279,7 +313,8 @@ fun CaregiverLoginScreen(
             Text(
                 text = "Forgot password?",
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.titleMedium,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 modifier = Modifier.clickable {
 
                     // Belum dihubungkan
@@ -297,8 +332,9 @@ fun CaregiverLoginScreen(
             enabled = canInteract,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(58.dp),
-            shape = RoundedCornerShape(10.dp),
+                .height(46.dp),
+            shape = RoundedCornerShape(12.dp),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primary
             )
@@ -310,7 +346,8 @@ fun CaregiverLoginScreen(
                     "Login"
                 },
                 color = MaterialTheme.colorScheme.background,
-                style = MaterialTheme.typography.titleLarge
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold
             )
         }
 
@@ -334,7 +371,7 @@ fun CaregiverLoginScreen(
             Text(
                 text = "Or Continue With",
                 color = PlaceholderColor,
-                fontSize = 15.sp,
+                fontSize = 14.sp,
                 modifier = Modifier.padding(
                     horizontal = 12.dp
                 )
@@ -349,18 +386,18 @@ fun CaregiverLoginScreen(
         }
 
         Spacer(
-            modifier = Modifier.height(25.dp)
+            modifier = Modifier.height(22.dp)
         )
 
         // google button box
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(58.dp)
+                .height(46.dp)
                 .border(
                     width = 1.dp,
                     color = BorderColor,
-                    shape = RoundedCornerShape(10.dp)
+                    shape = RoundedCornerShape(12.dp)
                 )
                 .clickable {
 
@@ -375,17 +412,18 @@ fun CaregiverLoginScreen(
                     id = R.drawable.google
                 ),
                 contentDescription = "Google",
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(22.dp)
             )
 
             Spacer(
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(14.dp)
             )
 
             Text(
                 text = "Google",
                 color = MaterialTheme.colorScheme.onBackground,
-                style = MaterialTheme.typography.bodyMedium
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Medium
             )
         }
 
@@ -403,13 +441,13 @@ fun CaregiverLoginScreen(
             Text(
                 text = "Don’t have an account? ",
                 color = Color.Black,
-                style = MaterialTheme.typography.bodyLarge
+                fontSize = 14.sp
             )
 
             Text(
                 text = "Sign Up",
                 color = MaterialTheme.colorScheme.primary,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.clickable(enabled = canInteract) {
                     onSignUpClick()
@@ -418,7 +456,7 @@ fun CaregiverLoginScreen(
         }
 
         Spacer(
-            modifier = Modifier.height(42.dp)
+            modifier = Modifier.height(36.dp)
         )
     }
 }

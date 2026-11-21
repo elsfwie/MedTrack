@@ -22,7 +22,7 @@ fun GreenBackButton(
         contentDescription = "Back",
         colorFilter = ColorFilter.tint(Color(0xFF0C3740)),
         modifier = modifier
-            .size(32.dp)
+            .size(24.dp)
             .clickable {
                 onBackClick()
             }

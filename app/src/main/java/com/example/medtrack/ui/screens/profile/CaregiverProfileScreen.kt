@@ -93,7 +93,7 @@ fun CaregiverProfileScreen(
             Image(
                 painter = painterResource(id = profileIcon),
                 contentDescription = "Caregiver profile",
-                modifier = Modifier.size(150.dp),
+                modifier = Modifier.size(120.dp),
                 contentScale = ContentScale.Fit
             )
 
@@ -104,7 +104,7 @@ fun CaregiverProfileScreen(
             // nama caregiver
             Text(
                 text = caregiverName,
-                fontSize = 25.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -117,7 +117,7 @@ fun CaregiverProfileScreen(
             Box(
                 modifier = Modifier
                     .width(250.dp)
-                    .height(50.dp)
+                    .height(40.dp)
                     .shadow(
                         elevation = 5.dp,
                         shape = RoundedCornerShape(30.dp),
@@ -259,11 +259,11 @@ private fun LogoutButton(
     androidx.compose.material3.Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(46.dp)
             .clickable {
                 onClick()
             },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.primary
     ) {
         Row(
@@ -274,7 +274,7 @@ private fun LogoutButton(
             Text(
                 text = "Logout",
                 color = MaterialTheme.colorScheme.background,
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleMedium
             )
 
             Spacer(
@@ -284,7 +284,7 @@ private fun LogoutButton(
             Image(
                 painter = painterResource(id = logoutIcon),
                 contentDescription = "Logout",
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier.size(20.dp),
                 contentScale = ContentScale.Fit
             )
         }

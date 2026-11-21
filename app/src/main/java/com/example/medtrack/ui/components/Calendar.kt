@@ -63,8 +63,8 @@ import java.time.temporal.TemporalAdjusters
 import java.util.Locale
 import kotlin.time.Duration.Companion.milliseconds
 
-private val CalendarHeaderTextSize = 22.sp
-private val CalendarArrowSize = 24.dp
+private val CalendarHeaderTextSize = 18.sp
+private val CalendarArrowSize = 20.dp
 private val CalendarHeaderHeight = 56.dp
 private val CalendarDateShape = RoundedCornerShape(10.dp)
 private val CalendarFullShape = RoundedCornerShape(20.dp)
@@ -134,8 +134,8 @@ fun MedTrackCalendar(
                 .fillMaxWidth()
                 .padding(horizontal = 2.dp), // padding luar layar
             shape = CalendarFullShape, // bentuk sudut melengkung
-            tonalElevation = 2.dp,            // warna tonal khas Material 3
-            shadowElevation = 10.dp,           // KAPASITAS DROP SHADOW DI SINI
+            tonalElevation = 2.dp,
+            shadowElevation = 10.dp,           // drop shadow
             color = MaterialTheme.colorScheme.surface
         ) {
             Column(
@@ -166,7 +166,7 @@ fun MedTrackCalendar(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 10.dp, end = 10.dp, bottom = 12.dp, top = 8.dp),
+                        .padding(start = 10.dp, end = 10.dp, bottom = 12.dp, top = 5.dp),
 
                     horizontalArrangement = Arrangement.spacedBy(7.dp)
                 ) {
