@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.medtrack.R
 import com.example.medtrack.ui.components.Header
+import com.example.medtrack.ui.components.ShareCodeDialog
 import com.example.medtrack.ui.theme.MedTrackTheme
 
 // Warna Tema
@@ -75,6 +76,9 @@ fun PatientDetailsScreen(
     onShareCodeClick: () -> Unit = {},
     onAddScheduleClick: () -> Unit = {}
 ) {
+
+    var showShareDialog by rememberSaveable { mutableStateOf(false) }
+
     // set false untuk simulasi belum ada jadwal
     val hasSchedule = false
 
@@ -147,7 +151,10 @@ fun PatientDetailsScreen(
 
                 // Share Code Button
                 Button(
-                    onClick = onShareCodeClick,
+                    onClick = {
+                        showShareDialog = true // Buka dialog
+                        onShareCodeClick() // Tetap panggil callback jika ada
+                    },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = secondaryColor,
                         contentColor = tertiaryColor
@@ -283,6 +290,12 @@ fun PatientDetailsScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+    if (showShareDialog) {
+        ShareCodeDialog(
+            patientCode = "425192", // Nanti diganti dengan token dari backend
+            onDismiss = { showShareDialog = false }
+        )
     }
 }
 
