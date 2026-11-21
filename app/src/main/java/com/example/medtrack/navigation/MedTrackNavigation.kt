@@ -50,6 +50,8 @@ import com.example.medtrack.ui.screens.shared.PatientSharedScreen
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.example.medtrack.ui.components.LogoutConfirmDialog
 import com.example.medtrack.ui.components.DashboardLeaveHandler
 import com.example.medtrack.ui.app.AppUiState
@@ -58,6 +60,8 @@ import com.example.medtrack.ui.app.AppViewModelFactory
 import com.example.medtrack.ui.screens.patients.PatientListViewModel
 import com.example.medtrack.ui.screens.patients.AddPatientScreen
 import com.example.medtrack.ui.screens.patients.AddPatientViewModel
+import com.example.medtrack.ui.screens.patients.PatientDetailsData
+import com.example.medtrack.ui.screens.patients.PatientDetailsScreen
 import com.example.medtrack.ui.screens.patients.PatientVerifyAgeScreen
 
 @Composable
@@ -328,6 +332,10 @@ private fun MedTrackGraph(
                         ).show()
                     },
 
+                    onPatientClick = { patientId ->
+                        navController.navigate(NavRoute.PatientDetail.createRoute(patientId))
+                    },
+
                     state = patientListState
                 )
             }
@@ -369,6 +377,26 @@ private fun MedTrackGraph(
                         ).show()
                     }
                 }
+            }
+
+            composable(
+                route = NavRoute.PatientDetail.route,
+                arguments = listOf(navArgument("patientId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val patientId = backStackEntry.arguments?.getString("patientId")
+
+                // Data dummy (Nanti diambil dari ViewModel berdasarkan patientId)
+                PatientDetailsScreen(
+                    patient = PatientDetailsData(
+                        name = "Anna",
+                        gender = "Female",
+                        age = 79,
+                        emergencyContactName = "Jane Doe",
+                        emergencyContactNumber = "0812-3451-6382",
+                        medicalNotes = "has a seafood allergy—specifically to shrimp—and I cannot take any medication that contains amoxicillin. Also allergic to peanuts and dust."
+                    ),
+                    onBackClick = { navController.popBackStack() },
+                )
             }
 
             composable(NavRoute.CaregiverShared.route) {

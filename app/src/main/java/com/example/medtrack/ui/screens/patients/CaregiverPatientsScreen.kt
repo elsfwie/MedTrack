@@ -98,6 +98,7 @@ fun CaregiverPatientsScreen(
     onItemSelected: (Int) -> Unit,
     onNotificationClick: () -> Unit = {},
     onAddPatientClick: () -> Unit = {},
+    onPatientClick: (String) -> Unit = {},
     onSharePatients: (Set<String>) -> Unit = {},
     onDeletePatients: (Set<String>) -> Unit = {},
     previewMode: Boolean = false,
@@ -588,7 +589,8 @@ fun CaregiverPatientsScreen(
                                         if (isSelectionMode) {
                                             togglePatientSelection(patient.id)
                                         } else {
-
+                                            // Panggil navigasi dengan membawa ID Pasien
+                                            onPatientClick(patient.id)
                                         }
                                     },
                                     onLongClick = {
