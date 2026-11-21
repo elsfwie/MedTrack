@@ -60,6 +60,6 @@ fun PatientHomeScreen() {
 @Composable
 fun PreviewPatientScreen () {
     MedTrackTheme {
-        CaregiverPatientsScreen(onItemSelected = {})
+        PatientHomeScreen()
     }
 }

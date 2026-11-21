@@ -86,7 +86,7 @@ fun PatientProfileScreen(
             Image(
                 painter = painterResource(id = profileIcon),
                 contentDescription = "Patient profile",
-                modifier = Modifier.size(150.dp),
+                modifier = Modifier.size(120.dp),
                 contentScale = ContentScale.Fit
             )
 
@@ -97,7 +97,7 @@ fun PatientProfileScreen(
             // nama pasien
             Text(
                 text = patientName,
-                fontSize = 25.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onBackground
             )
@@ -157,7 +157,7 @@ private fun PatientInformation(
             Text(
                 text = "AGE",
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelMedium
             )
 
             Spacer(
@@ -167,7 +167,7 @@ private fun PatientInformation(
             Text(
                 text = age.toString(),
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 26.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Normal
             )
         }
@@ -188,14 +188,14 @@ private fun PatientInformation(
             modifier = Modifier.width(30.dp)
         )
 
-        // kolom emergency contacet
+        // kolom emergency contact
         Column(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 text = "EMERGENCY CONTACT",
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.labelLarge
+                style = MaterialTheme.typography.labelMedium
             )
 
             Spacer(
@@ -205,7 +205,7 @@ private fun PatientInformation(
             Text(
                 text = emergencyContact,
                 color = MaterialTheme.colorScheme.onBackground,
-                fontSize = 27.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Normal
             )
         }
@@ -247,7 +247,7 @@ private fun MedicalNotesBox(
             Text(
                 text = medicalNotes,
                 color = MaterialTheme.colorScheme.tertiary,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodySmall
             )
         }
     }
@@ -261,11 +261,11 @@ private fun LogoutButton(
     androidx.compose.material3.Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(46.dp)
             .clickable {
                 onClick()
             },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(14.dp),
         color = MaterialTheme.colorScheme.primary
     ) {
         Row(
@@ -276,7 +276,7 @@ private fun LogoutButton(
             Text(
                 text = "Logout",
                 color = MaterialTheme.colorScheme.background,
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleMedium
             )
 
             Spacer(
@@ -286,7 +286,7 @@ private fun LogoutButton(
             Image(
                 painter = painterResource(id = logoutIcon),
                 contentDescription = "Logout",
-                modifier = Modifier.size(26.dp),
+                modifier = Modifier.size(20.dp),
                 contentScale = ContentScale.Fit
             )
         }

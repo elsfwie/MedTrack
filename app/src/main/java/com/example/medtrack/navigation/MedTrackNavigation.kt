@@ -46,7 +46,7 @@ import com.example.medtrack.ui.screens.profile.CaregiverProfileRoute
 import com.example.medtrack.ui.screens.profile.EditCaregiverProfileScreen
 import com.example.medtrack.ui.screens.patients.CaregiverPatientsScreen
 import com.example.medtrack.ui.screens.shared.CaregiverSharedScreen
-//import com.example.medtrack.ui.screens.shared.PatientSharedScreen
+import com.example.medtrack.ui.screens.shared.PatientSharedScreen
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -253,7 +253,6 @@ private fun MedTrackGraph(
                 )
             }
 
-
             composable(NavRoute.PatientLogin.route) {
                 val model: PatientLoginViewModel = viewModel(
                     factory = remember(authRepository) {
@@ -286,52 +285,6 @@ private fun MedTrackGraph(
                         ) {
                             launchSingleTop = true
                         }
-                    }
-                }
-            }
-
-            // verifikasi umur pasien
-            composable(NavRoute.PatientVerifyAge.route) {
-                val loginBackStackEntry = remember(navController) {
-                    navController.getBackStackEntry(
-                        NavRoute.PatientLogin.route
-                    )
-                }
-
-                val model: PatientLoginViewModel = viewModel(
-                    viewModelStoreOwner = loginBackStackEntry,
-                    factory = remember(authRepository) {
-                        PatientLoginViewModelFactory(
-                            authRepository = authRepository,
-                            deviceId = application.patientDeviceId
-                        )
-                    }
-                )
-
-                val state by model.uiState.collectAsStateWithLifecycle()
-
-                PatientVerifyAgeScreen(
-                    onBackClick = {
-                        model.onDialogDismissed()
-                        navController.popBackStack()
-                    },
-                    onVerifySuccess = { age ->
-                        // Simpan umur yang dimasukkan pasien.
-                        model.onAgeChanged(age)
-
-                        // Kirim kode dan umur ke backend.
-                        model.login()
-                    }
-                )
-
-                // Menampilkan pesan jika verifikasi gagal.
-                LaunchedEffect(state.loginError) {
-                    state.loginError?.let { message ->
-                        Toast.makeText(
-                            context,
-                            message,
-                            Toast.LENGTH_SHORT
-                        ).show()
                     }
                 }
             }
@@ -482,9 +435,48 @@ private fun MedTrackGraph(
                 )
             }
         } else {
-//            composable(NavRoute.PatientShared.route) {
-//                PatientSharedScreen(onItemSelected = onPatientTab)
-//            }
+            // Rute Verifikasi Umur Pasien
+            composable(NavRoute.PatientVerifyAge.route) {
+                val model: PatientLoginViewModel = viewModel(
+                    factory = remember(authRepository) {
+                        PatientLoginViewModelFactory(
+                            authRepository = authRepository,
+                            deviceId = application.patientDeviceId
+                        )
+                    }
+                )
+
+                val state by model.uiState.collectAsStateWithLifecycle()
+
+                PatientVerifyAgeScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onVerifySuccess = { age ->
+                        // simpan umur
+                        model.onAgeChanged(age)
+
+                        // kirim kode dan umur ke backend
+                        model.login()
+                    }
+                )
+
+                // menampilkan pesan jika verifikasi gagal.
+                LaunchedEffect(state.loginError) {
+                    state.loginError?.let { message ->
+                        Toast.makeText(
+                            context,
+                            message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+
+            composable(NavRoute.PatientShared.route) {
+                PatientSharedScreen(onItemSelected = onPatientTab)
+            }
+
             composable(NavRoute.PatientHome.route) {
                 DashboardLeaveHandler()
 
@@ -504,22 +496,16 @@ private fun MedTrackGraph(
 
                 val state by model.uiState.collectAsStateWithLifecycle()
 
-                var showLogoutDialog by rememberSaveable {
-                    mutableStateOf(false)
-                }
-
-                if (showLogoutDialog) {
+                // Menampilkan popup konfirmasi logout.
+                if (state.showLogoutDialog) {
                     LogoutConfirmDialog(
-                        onCancel = {
-                            showLogoutDialog = false
-                        },
-                        onConfirm = {
-                            model.logout()
-                        },
+                        onCancel = model::cancelLogout,
+                        onConfirm = model::logout,
                         isLoggingOut = state.isLoggingOut || state.isLoggedOut
                     )
                 }
 
+                // Menampilkan pesan jika logout gagal.
                 LaunchedEffect(state.logoutError) {
                     state.logoutError?.let { message ->
                         Toast.makeText(
