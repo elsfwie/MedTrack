@@ -36,6 +36,7 @@ data class PatientFormData(
     val name: String,
     val gender: String,
     val age: Int,
+    val emergencyContactName: String,
     val emergencyContact: String,
     val medicalNotes: String
 )
@@ -88,6 +89,7 @@ fun AddPatientScreen(
     var name by rememberSaveable { mutableStateOf("") }
     var gender by rememberSaveable { mutableStateOf("") }
     var age by rememberSaveable { mutableStateOf("") }
+    var emergencyContactName by rememberSaveable { mutableStateOf("") }
     var phoneNumber by rememberSaveable { mutableStateOf("") }
     var medicalNotes by rememberSaveable { mutableStateOf("") }
 
@@ -120,6 +122,7 @@ fun AddPatientScreen(
         name.isNotBlank() &&
                 gender.isNotBlank() &&
                 validAge &&
+                emergencyContactName.isNotBlank() &&
                 validPhone
 
     Scaffold(
@@ -148,6 +151,7 @@ fun AddPatientScreen(
                                     name = name.trim(),
                                     gender = gender,
                                     age = age.toInt(),
+                                    emergencyContactName= emergencyContactName.trim(),
                                     emergencyContact =
                                         "${selectedCountry.code} ${
                                             phoneNumber.filter { it.isDigit() }
@@ -306,10 +310,19 @@ fun AddPatientScreen(
             Spacer(modifier = Modifier.height(18.dp))
 
             // EMERGENCY CONTACT
-            PatientFieldLabel("Emergency Contact")
-
+            PatientFieldLabel("Emergency Contact Name")
             Spacer(modifier = Modifier.height(6.dp))
+            CompactPatientTextField(
+                value = emergencyContactName,
+                onValueChange = { emergencyContactName = it },
+                placeholder = "e.g Jane Doe",
+                modifier = Modifier.fillMaxWidth()
+            )
 
+            Spacer(modifier = Modifier.height(18.dp)) // Jarak antar kolom
+
+            PatientFieldLabel("Emergency Contact Number")
+            Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
