@@ -297,9 +297,23 @@ private fun MedTrackGraph(
 
                 CaregiverPatientsScreen(
                     onItemSelected = onCaregiverTab,
+
                     onAddPatientClick = {
                         navController.navigate(NavRoute.AddPatient.route)
                     },
+
+                    onDeletePatients = { patientIds ->
+                        patientListModel.deletePatients(patientIds)
+                    },
+
+                    onSharePatients = { patientIds ->
+                        Toast.makeText(
+                            context,
+                            "Sharing feature will be available soon.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
+
                     state = patientListState
                 )
             }

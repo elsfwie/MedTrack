@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class PatientListUiState(
     val loading: Boolean = true,
@@ -18,7 +19,7 @@ data class PatientListUiState(
 )
 
 class PatientListViewModel(
-    repository: PatientRepository
+    private val repository: PatientRepository
 ) : ViewModel() {
 
     val uiState = repository.observePatients()
@@ -45,6 +46,14 @@ class PatientListViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = PatientListUiState()
         )
+
+    fun deletePatients(patientIds: Set<String>) {
+        viewModelScope.launch {
+            patientIds.forEach { patientId ->
+                repository.deletePatient(patientId)
+            }
+        }
+    }
 
     class Factory(
         private val repository: PatientRepository

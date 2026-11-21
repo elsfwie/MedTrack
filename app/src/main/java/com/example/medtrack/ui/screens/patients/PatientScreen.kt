@@ -56,10 +56,10 @@ fun PatientHomeScreen() {
     }
 }
 
-//@Preview(showBackground = true)
-//@Composable
-//fun PreviewPatientScreen () {
-//    MedTrackTheme {
-//        CaregiverPatientsScreen(onItemSelected = {})
-//    }
-//}
+@Preview(showBackground = true)
+@Composable
+fun PreviewPatientScreen () {
+    MedTrackTheme {
+        CaregiverPatientsScreen(onItemSelected = {})
+    }
+}
