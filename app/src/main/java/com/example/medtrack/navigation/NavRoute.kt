@@ -20,6 +20,10 @@ sealed class NavRoute(val route: String) {
         fun createRoute(patientId: String) = "patient_detail/$patientId"
     }
 
+    object EditPatientProfile : NavRoute("edit_patient_profile/{patientId}") {
+        fun createRoute(patientId: String) = "edit_patient_profile/$patientId"
+    }
+
     object CaregiverShared : NavRoute("caregiver_shared")
     object PatientShared : NavRoute("patient_shared")
 

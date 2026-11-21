@@ -63,6 +63,8 @@ import com.example.medtrack.ui.screens.patients.AddPatientViewModel
 import com.example.medtrack.ui.screens.patients.PatientDetailsData
 import com.example.medtrack.ui.screens.patients.PatientDetailsScreen
 import com.example.medtrack.ui.screens.patients.PatientVerifyAgeScreen
+import com.example.medtrack.ui.screens.patients.EditPatientProfileScreen
+import com.example.medtrack.ui.screens.patients.PatientFormData
 
 @Composable
 fun MedTrackNavigation() {
@@ -379,6 +381,7 @@ private fun MedTrackGraph(
                 }
             }
 
+            // RUTE PATIENT DETAIL (Diperbarui untuk navigasi ke Edit)
             composable(
                 route = NavRoute.PatientDetail.route,
                 arguments = listOf(navArgument("patientId") { type = NavType.StringType })
@@ -396,6 +399,35 @@ private fun MedTrackGraph(
                         medicalNotes = "has a seafood allergy—specifically to shrimp—and I cannot take any medication that contains amoxicillin. Also allergic to peanuts and dust."
                     ),
                     onBackClick = { navController.popBackStack() },
+                    onEditProfileClick = {
+                        navController.navigate(NavRoute.EditPatientProfile.createRoute(patientId ?: ""))
+                    }
+                )
+            }
+
+            // RUTE EDIT PATIENT PROFILE (BARU)
+            composable(
+                route = NavRoute.EditPatientProfile.route,
+                arguments = listOf(navArgument("patientId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                // Data dummy (Nanti diambil dari ViewModel berdasarkan patientId)
+                val dummyInitialData = PatientFormData(
+                    name = "Anna",
+                    gender = "Female",
+                    age = 79,
+                    emergencyContactName = "Jane Doe",
+                    emergencyContact = "+62 81234516382",
+                    medicalNotes = "has a seafood allergy—specifically to shrimp—and I cannot take any medication that contains amoxicillin. Also allergic to peanuts and dust."
+                )
+
+                EditPatientProfileScreen(
+                    initialData = dummyInitialData,
+                    onBackClick = { navController.popBackStack() },
+                    onSave = { updatedData ->
+                        // TODO: Panggil ViewModel untuk update data ke backend/database
+                        // Jika berhasil, kembali ke halaman detail
+                        navController.popBackStack()
+                    }
                 )
             }
 

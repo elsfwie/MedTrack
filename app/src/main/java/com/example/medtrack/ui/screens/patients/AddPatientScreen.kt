@@ -31,38 +31,6 @@ import com.example.medtrack.ui.components.Header
 import com.example.medtrack.ui.theme.MedTrackTheme
 import com.example.medtrack.validation.AuthValidator
 
-// Data yang akan dikirim ketika pasien berhasil ditambahkan.
-data class PatientFormData(
-    val name: String,
-    val gender: String,
-    val age: Int,
-    val emergencyContactName: String,
-    val emergencyContact: String,
-    val medicalNotes: String
-)
-
-// Data negara untuk country selector.
-private data class CountryCode(
-    val name: String,
-    val flag: String,
-    val code: String
-)
-
-private val countryCodes = listOf(
-    CountryCode("Indonesia", "🇮🇩", "+62"),
-    CountryCode("Singapore", "🇸🇬", "+65"),
-    CountryCode("Malaysia", "🇲🇾", "+60"),
-    CountryCode("United States", "🇺🇸", "+1"),
-    CountryCode("United Kingdom", "🇬🇧", "+44"),
-    CountryCode("Australia", "🇦🇺", "+61"),
-    CountryCode("Japan", "🇯🇵", "+81"),
-    CountryCode("South Korea", "🇰🇷", "+82"),
-    CountryCode("India", "🇮🇳", "+91"),
-    CountryCode("Philippines", "🇵🇭", "+63"),
-    CountryCode("Thailand", "🇹🇭", "+66"),
-    CountryCode("Vietnam", "🇻🇳", "+84")
-)
-
 private val primaryColor = Color(0xFF568189)
 private val secondaryColor = Color(0xFFD5F3F3)
 private val tertiaryColor = Color(0xFF0C3740)
