@@ -187,64 +187,6 @@ fun PatientLoginScreen(
                 style = MaterialTheme.typography.titleLarge
             )
         }
-
-        // Security check popup: the age is asked after the code, in the middle of the screen.
-        if (uiState.showAgeDialog) {
-            AlertDialog(
-                onDismissRequest = onDialogDismissed,
-                title = { Text("Security Check") },
-                text = {
-                    Column {
-                        Text(
-                            text = "Enter the patient's age to make sure the right patient is logging in.",
-                            style = MaterialTheme.typography.bodyMedium
-                        )
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        OutlinedTextField(
-                            value = uiState.age,
-                            onValueChange = onAgeChanged,
-                            enabled = canInteract,
-                            modifier = Modifier.fillMaxWidth(),
-                            label = { Text("Patient age") },
-                            singleLine = true,
-                            isError = uiState.ageError != null,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.NumberPassword,
-                                imeAction = ImeAction.Done
-                            )
-                        )
-
-                        (uiState.ageError ?: uiState.loginError)?.let { message ->
-                            Text(
-                                text = message,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = onLoginClick,
-                        enabled = canInteract
-                    ) {
-                        Text(
-                            text = if (uiState.isLoading) "Verifying..." else "Verify"
-                        )
-                    }
-                },
-                dismissButton = {
-                    TextButton(
-                        onClick = onDialogDismissed,
-                        enabled = !uiState.isLoading
-                    ) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
     }
 }
 

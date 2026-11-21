@@ -58,6 +58,7 @@ import com.example.medtrack.ui.app.AppViewModelFactory
 import com.example.medtrack.ui.screens.patients.PatientListViewModel
 import com.example.medtrack.ui.screens.patients.AddPatientScreen
 import com.example.medtrack.ui.screens.patients.AddPatientViewModel
+import com.example.medtrack.ui.screens.patients.PatientVerifyAgeScreen
 
 @Composable
 fun MedTrackNavigation() {
@@ -252,6 +253,7 @@ private fun MedTrackGraph(
                 )
             }
 
+
             composable(NavRoute.PatientLogin.route) {
                 val model: PatientLoginViewModel = viewModel(
                     factory = remember(authRepository) {
@@ -271,8 +273,67 @@ private fun MedTrackGraph(
                     onEnterClick = model::onEnterClick,
                     onDialogDismissed = model::onDialogDismissed,
                     onLoginClick = model::login,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = {
+                        navController.popBackStack()
+                    }
                 )
+
+                // jika sudah memasukkan token, ke verify age
+                LaunchedEffect(state.showAgeDialog) {
+                    if (state.showAgeDialog) {
+                        navController.navigate(
+                            NavRoute.PatientVerifyAge.route
+                        ) {
+                            launchSingleTop = true
+                        }
+                    }
+                }
+            }
+
+            // verifikasi umur pasien
+            composable(NavRoute.PatientVerifyAge.route) {
+                val loginBackStackEntry = remember(navController) {
+                    navController.getBackStackEntry(
+                        NavRoute.PatientLogin.route
+                    )
+                }
+
+                val model: PatientLoginViewModel = viewModel(
+                    viewModelStoreOwner = loginBackStackEntry,
+                    factory = remember(authRepository) {
+                        PatientLoginViewModelFactory(
+                            authRepository = authRepository,
+                            deviceId = application.patientDeviceId
+                        )
+                    }
+                )
+
+                val state by model.uiState.collectAsStateWithLifecycle()
+
+                PatientVerifyAgeScreen(
+                    onBackClick = {
+                        model.onDialogDismissed()
+                        navController.popBackStack()
+                    },
+                    onVerifySuccess = { age ->
+                        // Simpan umur yang dimasukkan pasien.
+                        model.onAgeChanged(age)
+
+                        // Kirim kode dan umur ke backend.
+                        model.login()
+                    }
+                )
+
+                // Menampilkan pesan jika verifikasi gagal.
+                LaunchedEffect(state.loginError) {
+                    state.loginError?.let { message ->
+                        Toast.makeText(
+                            context,
+                            message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
         } else if (user.role == UserRole.CAREGIVER) {
             composable(NavRoute.EditCaregiverProfile.route) {

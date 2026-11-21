@@ -9,6 +9,8 @@ sealed class NavRoute(val route: String) {
     object CaregiverRegister : NavRoute("caregiver_register")
     object PatientLogin : NavRoute("patient_login")
 
+    object PatientVerifyAge : NavRoute("patient_verify_age")
+
     object CaregiverHome : NavRoute("caregiver_home")
     object PatientHome : NavRoute("patient_home")
 
