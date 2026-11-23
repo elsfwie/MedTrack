@@ -15,3 +15,5 @@ val MedTrackOnPrimary = Color(0xFFFFFFFF)
 val MedTrackOnBackground = Color(0xFF000000)
 
 val MedTrackOnSecondary = Color(0xFF0C3740)
+
+val MedtrackPlaceholder = Color(0xFF628489)

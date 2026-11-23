@@ -65,6 +65,7 @@ import com.example.medtrack.ui.screens.patients.PatientDetailsScreen
 import com.example.medtrack.ui.screens.patients.PatientVerifyAgeScreen
 import com.example.medtrack.ui.screens.patients.EditPatientProfileScreen
 import com.example.medtrack.ui.screens.patients.PatientFormData
+import com.example.medtrack.ui.screens.patients.AddScheduleScreen
 
 @Composable
 fun MedTrackNavigation() {
@@ -401,6 +402,36 @@ private fun MedTrackGraph(
                     onBackClick = { navController.popBackStack() },
                     onEditProfileClick = {
                         navController.navigate(NavRoute.EditPatientProfile.createRoute(patientId ?: ""))
+                    },
+                    onAddScheduleClick = {
+                        navController.navigate(
+                            NavRoute.AddSchedule.createRoute(patientId ?: "")
+                        )
+                    }
+                )
+            }
+
+            // ROUTE ADD SCHEDULE
+            composable(
+                route = NavRoute.AddSchedule.route,
+                arguments = listOf(
+                    navArgument("patientId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) { backStackEntry ->
+
+                // Mengambil ID pasien dari navigation argument.
+                val patientId = backStackEntry.arguments?.getString("patientId")
+
+                AddScheduleScreen(
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
+                    onSaveSchedule = {
+                        // TODO: Simpan jadwal berdasarkan patientId.
+                        // Untuk sementara, kembali ke Patient Details.
+                        navController.popBackStack()
                     }
                 )
             }
