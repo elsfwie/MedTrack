@@ -20,6 +20,17 @@ import com.example.medtrack.repository.DummyDataInitializer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import com.example.medtrack.model.AuthSession
+import com.example.medtrack.reminder.platform.AndroidReminderScheduler
+import com.example.medtrack.reminder.platform.FileReminderStateStore
+import com.example.medtrack.reminder.platform.ReminderEngine
+import com.example.medtrack.reminder.platform.ReminderNotifications
+import com.example.medtrack.reminder.platform.ReminderWork
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.retryWhen
 
 class MedTrackApplication : Application() {
 
@@ -68,6 +79,8 @@ class MedTrackApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        startReminderPlatform()
+
         if (BuildConfig.DEBUG) {
             val initializer = DummyDataInitializer(
                 database = database,
@@ -102,5 +115,61 @@ class MedTrackApplication : Application() {
             database = database,
             currentUser = authRepository.currentUser
         )
+    }
+
+    val reminderScheduler: AndroidReminderScheduler by lazy {
+        AndroidReminderScheduler(this)
+    }
+
+    val reminderNotifications: ReminderNotifications by lazy {
+        ReminderNotifications(this)
+    }
+
+    private val reminderStateStore by lazy {
+        FileReminderStateStore(this)
+    }
+
+    val reminderEngine: ReminderEngine by lazy {
+        ReminderEngine(
+            sessions = authRepository.sessionState,
+            repository = reminderRepository,
+            alarms = reminderScheduler,
+            notifications = reminderNotifications,
+            store = reminderStateStore
+        )
+    }
+
+    private fun startReminderPlatform() {
+        reminderNotifications.createChannel()
+        ReminderWork.ensurePeriodic(this)
+
+        applicationScope.launch {
+            combine(
+                authRepository.sessionState,
+                reminderRepository.observeReminders()
+            ) { session, _ ->
+                session
+            }
+                .filter { session ->
+                    session !is AuthSession.Checking
+                }
+                .onEach {
+                    reminderEngine.reconcile()
+                }
+                .retryWhen { cause, _ ->
+                    if (cause is CancellationException) {
+                        false
+                    } else {
+                        Log.e(
+                            "MedTrackReminder",
+                            "Reminder observation failed.",
+                            cause
+                        )
+                        delay(2_000L)
+                        true
+                    }
+                }
+                .collect()
+        }
     }
 }
