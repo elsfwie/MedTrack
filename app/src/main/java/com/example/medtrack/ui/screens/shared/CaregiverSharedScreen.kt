@@ -41,6 +41,14 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CaregiverSharedScreen(
+    uiState: SharingUiState,
+    onSearchQueryChanged: (String) -> Unit,
+    onTabSelected: (SharingTab) -> Unit,
+    onRefresh: () -> Unit,
+    onSendConnectionRequest: (String) -> Unit,
+    onAcceptConnectionRequest: (String) -> Unit,
+    onDeclineConnectionRequest: (String) -> Unit,
+    onSharePatient: (String, String) -> Unit,
     onItemSelected: (Int) -> Unit,
     onNotificationClick: () -> Unit = {},
     previewMode: Boolean = false
@@ -131,8 +139,8 @@ fun CaregiverSharedScreen(
 
                 // search bar
                 BasicTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
+                    value = uiState.searchQuery,
+                    onValueChange = onSearchQueryChanged,
                     modifier = Modifier
                         .weight(1f)
                         .height(40.dp),
@@ -213,8 +221,8 @@ fun CaregiverSharedScreen(
                 Column {
                     Spacer(modifier = Modifier.height(20.dp))
                     SharingTabRow(
-                        selectedTab = selectedTab,
-                        onTabSelected = { selectedTab = it },
+                        selectedTab = uiState.selectedTab,
+                        onTabSelected = onTabSelected,
                         activeColor = tertiaryColor,
                         inactiveColor = primaryColor,
                         indicatorColor = tertiaryColor,
@@ -324,9 +332,16 @@ private fun SharingTabRow(
 fun PreviewCaregiverShared() {
     MedTrackTheme {
         CaregiverSharedScreen(
+            uiState = SharingUiState(),
+            onSearchQueryChanged = {},
+            onTabSelected = {},
+            onRefresh = {},
+            onSendConnectionRequest = {},
+            onAcceptConnectionRequest = {},
+            onDeclineConnectionRequest = {},
+            onSharePatient = { _, _ -> },
             onItemSelected = {},
             onNotificationClick = {},
-//            previewMode = true
             previewMode = false
         )
     }
