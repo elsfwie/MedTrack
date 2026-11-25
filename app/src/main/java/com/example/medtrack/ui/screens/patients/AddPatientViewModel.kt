@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import androidx.lifecycle.ViewModelProvider
+import com.example.medtrack.ui
 
 class AddPatientViewModel(
     private val repository: PatientRepository
@@ -84,6 +85,16 @@ class AddPatientViewModel(
         }
     }
 
+    fun onEmergencyContactNameChanged(value: String) {
+        _uiState.update {
+            it.copy(
+                emergencyContactName = value,
+                emergencyContactNameError = null,
+                errorMessage = null
+            )
+        }
+    }
+
     fun submit() {
         val current = _uiState.value
         if (current.isSaving || current.isSaved) return
@@ -93,6 +104,14 @@ class AddPatientViewModel(
 
         val nameError =
             if (cleanName.isBlank()) "Nama pasien wajib diisi." else null
+
+        val cleanEmergencyContactName = current.emergencyContactName.trim()
+        val emergencyContactNameError =
+            if (cleanEmergencyContactName.isBlank()) {
+                "Nama kontak darurat wajib diisi."
+            } else {
+                null
+            }
 
         val genderError =
             if (current.gender !in setOf("Male", "Female")) {
@@ -116,9 +135,11 @@ class AddPatientViewModel(
         _uiState.update {
             it.copy(
                 name = cleanName,
+                emergencyContactName = cleanEmergencyContactName,
                 nameError = nameError,
                 genderError = genderError,
                 ageError = ageError,
+                emergencyContactNameError = emergencyContactNameError,
                 phoneError = phoneError,
                 errorMessage = null
             )
@@ -128,6 +149,7 @@ class AddPatientViewModel(
             nameError != null ||
             genderError != null ||
             ageError != null ||
+            emergencyContactNameError != null ||
             phoneError != null ||
             parsedAge == null
         ) {
@@ -141,8 +163,8 @@ class AddPatientViewModel(
                 repository.addPatient(
                     name = cleanName,
                     age = parsedAge,
-                    emergencyContact =
-                        "${current.countryCode} ${current.phoneNumber}",
+                    emergencyContactName = cleanEmergencyContactName,
+                    emergencyContact = "${current.countryCode} ${current.phoneNumber}",
                     gender = current.gender,
                     medicalNotes = current.medicalNotes.trim()
                 )

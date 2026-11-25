@@ -11,6 +11,7 @@ interface PatientRepository {
 
     suspend fun addPatient(
         name: String,
+        emergencyContactName: String? = null,
         age: Int,
         emergencyContact: String? = null,
         gender: String = "Not specified",
@@ -19,6 +20,7 @@ interface PatientRepository {
 
     suspend fun updatePatient(
         patientId: String,
+        emergencyContactName: String? = null,
         name: String,
         age: Int,
         emergencyContact: String? = null,

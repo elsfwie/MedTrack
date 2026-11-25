@@ -7,5 +7,6 @@ data class Patient(
     val age: Int,
     val emergencyContact: String?,
     val gender: String = "Not specified",
-    val medicalNotes: String = ""
+    val medicalNotes: String = "",
+    val emergencyContactName: String? = null
 )

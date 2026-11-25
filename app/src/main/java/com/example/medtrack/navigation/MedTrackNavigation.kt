@@ -357,9 +357,16 @@ private fun MedTrackGraph(
 
                 // menampilkan form add patient
                 AddPatientScreen(
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
+                    uiState = addPatientState,
+                    onNameChanged = addPatientModel::onNameChanged,
+                    onGenderChanged = addPatientModel::onGenderChanged,
+                    onAgeChanged = addPatientModel::onAgeChanged,
+                    onEmergencyContactNameChanged =
+                        addPatientModel::onEmergencyContactNameChanged,
+                    onCountryCodeChanged = addPatientModel::onCountryCodeChanged,
+                    onPhoneChanged = addPatientModel::onPhoneChanged,
+                    onMedicalNotesChanged = addPatientModel::onMedicalNotesChanged,
+                    onBackClick = { navController.popBackStack() },
                     onAddPatient = addPatientModel::submit
                 )
 

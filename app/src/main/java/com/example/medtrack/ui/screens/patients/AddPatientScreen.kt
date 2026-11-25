@@ -50,27 +50,24 @@ private fun PatientFieldLabel(text: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddPatientScreen(
+    uiState: AddPatientUiState,
+    onNameChanged: (String) -> Unit,
+    onGenderChanged: (String) -> Unit,
+    onAgeChanged: (String) -> Unit,
+    onEmergencyContactNameChanged: (String) -> Unit,
+    onCountryCodeChanged: (String) -> Unit,
+    onPhoneChanged: (String) -> Unit,
+    onMedicalNotesChanged: (String) -> Unit,
     onBackClick: () -> Unit,
-    onAddPatient: (PatientFormData) -> Unit
-) {
-    // Form states.
-    var name by rememberSaveable { mutableStateOf("") }
-    var gender by rememberSaveable { mutableStateOf("") }
-    var age by rememberSaveable { mutableStateOf("") }
-    var emergencyContactName by rememberSaveable { mutableStateOf("") }
-    var phoneNumber by rememberSaveable { mutableStateOf("") }
-    var medicalNotes by rememberSaveable { mutableStateOf("") }
-
+    onAddPatient: () -> Unit
+){
     // Country selector states.
-    var selectedCountry by remember {
-        mutableStateOf(countryCodes.first())
-    }
-    var showCountryMenu by remember {
-        mutableStateOf(false)
-    }
-    var showGenderMenu by remember {
-        mutableStateOf(false)
-    }
+    val selectedCountry =
+        countryCodes.find { it.code == uiState.countryCode }
+            ?: countryCodes.first()
+
+    var showCountryMenu by rememberSaveable { mutableStateOf(false) }
+    var showGenderMenu by rememberSaveable { mutableStateOf(false) }
 
     val validAge = age.toIntOrNull()?.let {
         it in 0..150
@@ -79,19 +76,15 @@ fun AddPatientScreen(
     val maxLocalPhoneDigits =
         AuthValidator.maxLocalPhoneDigits(selectedCountry.code)
 
-    val phoneError = AuthValidator.validateEmergencyContact(
-        localPhone = phoneNumber,
-        countryCode = selectedCountry.code
-    )
+    uiState.phoneError?.let { message ->
+        Text(
+            text = message,
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall
+        )
+    }
 
     val validPhone = phoneError == null
-
-    val isFormValid =
-        name.isNotBlank() &&
-                gender.isNotBlank() &&
-                validAge &&
-                emergencyContactName.isNotBlank() &&
-                validPhone
 
     Scaffold(
         topBar = {
@@ -112,24 +105,8 @@ fun AddPatientScreen(
                     )
             ) {
                 Button(
-                    onClick = {
-                        if (isFormValid) {
-                            onAddPatient(
-                                PatientFormData(
-                                    name = name.trim(),
-                                    gender = gender,
-                                    age = age.toInt(),
-                                    emergencyContactName= emergencyContactName.trim(),
-                                    emergencyContact =
-                                        "${selectedCountry.code} ${
-                                            phoneNumber.filter { it.isDigit() }
-                                        }",
-                                    medicalNotes = medicalNotes.trim()
-                                )
-                            )
-                        }
-                    },
-                    enabled = isFormValid,
+                    onClick = onAddPatient,
+                    enabled = !uiState.isSaving && !uiState.isSaved,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(46.dp),
@@ -138,14 +115,12 @@ fun AddPatientScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = primaryColor,
                         contentColor = Color.White,
-                        disabledContainerColor =
-                            primaryColor.copy(alpha = 0.35f),
-                        disabledContentColor =
-                            Color.White.copy(alpha = 0.8f)
+                        disabledContainerColor = primaryColor.copy(alpha = 0.35f),
+                        disabledContentColor = Color.White.copy(alpha = 0.8f)
                     )
                 ) {
                     Text(
-                        text = "Add Patient",
+                        text = if (uiState.isSaving) "Saving..." else "Add Patient",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -185,11 +160,18 @@ fun AddPatientScreen(
             Spacer(modifier = Modifier.height(6.dp))
 
             CompactPatientTextField(
-                value = name,
-                onValueChange = { name = it },
+                value = uiState.name,
+                onValueChange = onNameChanged,
                 placeholder = "e.g John Doe",
                 modifier = Modifier.fillMaxWidth()
             )
+            uiState.nameError?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Spacer(modifier = Modifier.height(18.dp))
 
@@ -206,8 +188,8 @@ fun AddPatientScreen(
 
                     Box {
                         CompactPatientTextField(
-                            value = gender,
-                            onValueChange = {},
+                            value = uiState.gender,
+                            onValueChange = onGenderChanged,
                             readOnly = true,
                             placeholder = "Select Gender",
                             trailingIcon = {
@@ -217,6 +199,13 @@ fun AddPatientScreen(
                             },
                             modifier = Modifier.fillMaxWidth()
                         )
+                        uiState.genderError?.let { message ->
+                            Text(
+                                text = message,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
 
                         // Transparent clickable area for dropdown.
                         Box(
@@ -260,18 +249,21 @@ fun AddPatientScreen(
                     Spacer(modifier = Modifier.height(6.dp))
 
                     CompactPatientTextField(
-                        value = age,
-                        onValueChange = {
-                            if (it.length <= 3 && it.all(Char::isDigit)) {
-                                age = it
-                            }
-                        },
+                        value = uiState.age,
+                        onValueChange = onAgeChanged,
                         placeholder = "e.g 50",
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Number
                         ),
                         modifier = Modifier.fillMaxWidth()
                     )
+                    uiState.ageError?.let { message ->
+                        Text(
+                            text = message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
                 }
             }
 
@@ -281,11 +273,18 @@ fun AddPatientScreen(
             PatientFieldLabel("Emergency Contact Name")
             Spacer(modifier = Modifier.height(6.dp))
             CompactPatientTextField(
-                value = emergencyContactName,
-                onValueChange = { emergencyContactName = it },
+                value = uiState.emergencyContactName,
+                onValueChange = onEmergencyContactNameChanged,
                 placeholder = "e.g Jane Doe",
                 modifier = Modifier.fillMaxWidth()
             )
+            uiState.emergencyContactNameError?.let { message ->
+                Text(
+                    text = message,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
 
             Spacer(modifier = Modifier.height(18.dp)) // Jarak antar kolom
 
@@ -300,8 +299,8 @@ fun AddPatientScreen(
                 // Country selector.
                 Box {
                     CompactPatientTextField(
-                        value = "${selectedCountry.flag} ${selectedCountry.code}",
-                        onValueChange = {},
+                        value = uiState.phoneNumber,
+                        onValueChange = onPhoneChanged,
                         readOnly = true,
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(
@@ -310,6 +309,14 @@ fun AddPatientScreen(
                         },
                         modifier = Modifier.width(118.dp)
                     )
+
+                    uiState.phoneError?.let { message ->
+                        Text(
+                            text = message,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
 
                     Box(
                         modifier = Modifier
@@ -338,7 +345,7 @@ fun AddPatientScreen(
                                     )
                                 },
                                 onClick = {
-                                    selectedCountry = country
+                                    onCountryCodeChanged(country.code)
                                     showCountryMenu = false
                                 }
                             )
@@ -348,17 +355,8 @@ fun AddPatientScreen(
 
                 // Phone number input.
                 CompactPatientTextField(
-                    value = phoneNumber,
-                    onValueChange = { newValue ->
-                        val hanyaKarakterTelepon = newValue.all { char ->
-                            char.isDigit() || char == ' ' || char == '-'
-                        }
-                        val digits = newValue.filter(Char::isDigit)
-
-                        if (hanyaKarakterTelepon && digits.length <= maxLocalPhoneDigits) {
-                            phoneNumber = digits
-                        }
-                    },
+                    value = uiState.phoneNumber,
+                    onValueChange = onPhoneChanged,
                     placeholder = "812-3456-7890",
                     keyboardOptions = KeyboardOptions(
                         keyboardType = KeyboardType.Phone
@@ -375,8 +373,8 @@ fun AddPatientScreen(
             Spacer(modifier = Modifier.height(6.dp))
 
             CompactPatientTextField(
-                value = medicalNotes,
-                onValueChange = { medicalNotes = it },
+                value = uiState.medicalNotes,
+                onValueChange = onMedicalNotesChanged,
                 placeholder = "e.g Felt mild dizziness",
                 singleLine = false,
                 fieldHeight = 110.dp,
@@ -487,6 +485,14 @@ private fun Modifier.clickableWithoutRipple(
 private fun AddPatientPreview() {
     MedTrackTheme {
         AddPatientScreen(
+            uiState = AddPatientUiState(),
+            onNameChanged = {},
+            onGenderChanged = {},
+            onAgeChanged = {},
+            onEmergencyContactNameChanged = {},
+            onCountryCodeChanged = {},
+            onPhoneChanged = {},
+            onMedicalNotesChanged = {},
             onBackClick = {},
             onAddPatient = {}
         )
