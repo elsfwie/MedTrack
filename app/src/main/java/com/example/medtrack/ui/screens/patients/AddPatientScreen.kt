@@ -69,10 +69,6 @@ fun AddPatientScreen(
     var showCountryMenu by rememberSaveable { mutableStateOf(false) }
     var showGenderMenu by rememberSaveable { mutableStateOf(false) }
 
-    val validAge = age.toIntOrNull()?.let {
-        it in 0..150
-    } ?: false
-
     val maxLocalPhoneDigits =
         AuthValidator.maxLocalPhoneDigits(selectedCountry.code)
 
@@ -83,8 +79,6 @@ fun AddPatientScreen(
             style = MaterialTheme.typography.bodySmall
         )
     }
-
-    val validPhone = phoneError == null
 
     Scaffold(
         topBar = {
@@ -234,7 +228,7 @@ fun AddPatientScreen(
                                         )
                                     },
                                     onClick = {
-                                        gender = option
+                                        onGenderChanged(option)
                                         showGenderMenu = false
                                     }
                                 )
@@ -299,8 +293,8 @@ fun AddPatientScreen(
                 // Country selector.
                 Box {
                     CompactPatientTextField(
-                        value = uiState.phoneNumber,
-                        onValueChange = onPhoneChanged,
+                        value = "${selectedCountry.flag} ${selectedCountry.code}",
+                        onValueChange = {},
                         readOnly = true,
                         trailingIcon = {
                             ExposedDropdownMenuDefaults.TrailingIcon(
@@ -363,6 +357,14 @@ fun AddPatientScreen(
                     ),
                     modifier = Modifier.weight(1f)
                 )
+                uiState.phoneError?.let { message ->
+                    Text(
+                        text = message,
+                        modifier = Modifier.padding(top = 4.dp),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(18.dp))

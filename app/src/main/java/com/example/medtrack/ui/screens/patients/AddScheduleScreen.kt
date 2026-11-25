@@ -25,6 +25,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -46,7 +47,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,20 +59,16 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import kotlinx.coroutines.launch
 import com.example.medtrack.ui.components.Header
 import com.example.medtrack.ui.theme.MedTrackBackground
 import com.example.medtrack.ui.theme.MedTrackOnBackground
@@ -79,54 +76,56 @@ import com.example.medtrack.ui.theme.MedTrackOnPrimary
 import com.example.medtrack.ui.theme.MedTrackPrimary
 import com.example.medtrack.ui.theme.MedTrackSecondary
 import com.example.medtrack.ui.theme.MedTrackTertiary
-import com.example.medtrack.ui.theme.MedTrackTheme
 import com.example.medtrack.ui.theme.MedtrackPlaceholder
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 private val weekDays = listOf("M", "T", "W", "T", "F", "S", "S")
-private val fullDayNames = listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
-private val dosageForms = listOf("Tablet", "Capsule", "Syrup", "Powder", "Injection")
+private val fullDayNames =
+    listOf("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun")
+private val dosageForms =
+    listOf("Tablet", "Capsule", "Syrup", "Powder", "Injection")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddScheduleScreen(
-    onBackClick: () -> Unit = {},
-    onSaveSchedule: () -> Unit = {},
+    uiState: AddScheduleUiState,
+    onMedicineNameChanged: (String) -> Unit,
+    onDosageChanged: (String) -> Unit,
+    onDosageFormChanged: (String) -> Unit,
+    onDayToggled: (Int) -> Unit,
+    onAllDayChanged: (Boolean) -> Unit,
+    onFrequencyChanged: (Int) -> Unit,
+    onReminderTimeChanged: (Int, String) -> Unit,
+    onBackClick: () -> Unit,
+    onSaveSchedule: () -> Unit
 ) {
-
-    var medicineName by rememberSaveable { mutableStateOf("") }
-    var dosage by rememberSaveable { mutableStateOf("") }
-    var selectedDosageForm by rememberSaveable { mutableStateOf("") }
     var expandedDosageMenu by remember { mutableStateOf(false) }
-
-    var selectedDays by rememberSaveable { mutableStateOf(setOf<Int>()) }
-    var isAllDay by rememberSaveable { mutableStateOf(false) }
-
-    var frequency by rememberSaveable { mutableStateOf("1") }
-    val frequencyCount = frequency.toIntOrNull()?.coerceAtLeast(1) ?: 1
-
-
-    var reminderTimes by rememberSaveable { mutableStateOf(List(frequencyCount) { "Set time" }) }
-
-
     var showTimePickerDialog by remember { mutableStateOf(false) }
     var editingDoseIndex by remember { mutableStateOf(-1) }
 
-    fun updateFrequency(newValue: Int) {
-        val safeValue = newValue.coerceAtLeast(1)
-        frequency = safeValue.toString()
-        reminderTimes = List(safeValue) { index ->
-            reminderTimes.getOrNull(index) ?: "Set time"
-        }
+    val frequencyCount = uiState.frequency.coerceIn(1, 12)
+
+    val selectedDayNames = fullDayNames.filterIndexed { index, _ ->
+        index in uiState.selectedDays
     }
 
-    val selectedDayNames = fullDayNames.filterIndexed { index, _ -> index in selectedDays }
-    val previewDays = if (selectedDayNames.isEmpty()) "No day selected" else selectedDayNames.joinToString(", ")
-    val previewTimes = reminderTimes.take(frequencyCount).joinToString(", ")
+    val previewDays = if (selectedDayNames.isEmpty()) {
+        "No day selected"
+    } else {
+        selectedDayNames.joinToString(", ")
+    }
+
+    val visibleReminderTimes = List(frequencyCount) { index ->
+        uiState.reminderTimes.getOrNull(index) ?: "Set time"
+    }
 
     Scaffold(
         topBar = {
-            Header(title = "Add Schedule", onBackClick = onBackClick)
+            Header(
+                title = "Add Schedule",
+                onBackClick = onBackClick
+            )
         },
         containerColor = MedTrackBackground
     ) { innerPadding ->
@@ -137,30 +136,50 @@ fun AddScheduleScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 24.dp)
         ) {
-            // Medicine Name
             FormLabel("Medicine Name")
             Spacer(Modifier.height(6.dp))
-            ScheduleTextField(value = medicineName, onValueChange = { medicineName = it }, placeholder = "e.g Paracetamol")
+
+            ScheduleTextField(
+                value = uiState.medicineName,
+                onValueChange = onMedicineNameChanged,
+                placeholder = "e.g Paracetamol"
+            )
+            ScheduleErrorText(uiState.medicineNameError)
 
             Spacer(Modifier.height(20.dp))
 
-            // Dosage & Dosage Form
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.Top) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.Top
+            ) {
                 Column(modifier = Modifier.weight(1f)) {
                     FormLabel("Dosage")
                     Spacer(Modifier.height(6.dp))
-                    ScheduleTextField(value = dosage, onValueChange = { dosage = it }, placeholder = "e.g 500mg")
+
+                    ScheduleTextField(
+                        value = uiState.dosage,
+                        onValueChange = onDosageChanged,
+                        placeholder = "e.g 500mg"
+                    )
+                    ScheduleErrorText(uiState.dosageError)
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
                     FormLabel("Dosage Form")
                     Spacer(Modifier.height(6.dp))
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(44.dp)
-                            .border(1.dp, MedTrackPrimary, RoundedCornerShape(12.dp))
-                            .clickable { expandedDosageMenu = true }
+                            .border(
+                                1.dp,
+                                MedTrackPrimary,
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clickable {
+                                expandedDosageMenu = true
+                            }
                             .padding(horizontal = 12.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
@@ -170,92 +189,133 @@ fun AddScheduleScreen(
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                text = selectedDosageForm.ifEmpty { "Select Form" },
-                                color = if (selectedDosageForm.isEmpty()) MedtrackPlaceholder else MedTrackTertiary,
+                                text = uiState.dosageForm.ifEmpty {
+                                    "Select Form"
+                                },
+                                color = if (uiState.dosageForm.isEmpty()) {
+                                    MedtrackPlaceholder
+                                } else {
+                                    MedTrackTertiary
+                                },
                                 fontSize = 13.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.weight(1f)
                             )
+
                             Icon(
                                 imageVector = Icons.Filled.ArrowDropDown,
                                 contentDescription = "Select Dosage Form",
                                 tint = MedTrackPrimary,
-                                modifier = Modifier.rotate(if (expandedDosageMenu) 180f else 0f)
+                                modifier = Modifier.rotate(
+                                    if (expandedDosageMenu) 180f else 0f
+                                )
                             )
                         }
 
                         DropdownMenu(
                             expanded = expandedDosageMenu,
-                            onDismissRequest = { expandedDosageMenu = false },
+                            onDismissRequest = {
+                                expandedDosageMenu = false
+                            },
                             modifier = Modifier.background(MedTrackBackground)
                         ) {
                             dosageForms.forEach { option ->
                                 DropdownMenuItem(
-                                    text = { Text(option, fontSize = 14.sp, color = MedTrackOnBackground) },
+                                    text = {
+                                        Text(
+                                            text = option,
+                                            fontSize = 14.sp,
+                                            color = MedTrackOnBackground
+                                        )
+                                    },
                                     onClick = {
-                                        selectedDosageForm = option
+                                        onDosageFormChanged(option)
                                         expandedDosageMenu = false
                                     }
                                 )
                             }
                         }
                     }
+
+                    ScheduleErrorText(uiState.dosageFormError)
                 }
             }
 
             Spacer(Modifier.height(20.dp))
 
-            // Repeat On
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 FormLabel("Repeat On")
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text(text = "All-Day", color = MedtrackPlaceholder, fontSize = 12.sp)
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = "All-Day",
+                        color = MedtrackPlaceholder,
+                        fontSize = 12.sp
+                    )
+
                     Switch(
-                        checked = isAllDay,
-                        onCheckedChange = { checked ->
-                            isAllDay = checked
-                            selectedDays = if (checked) (0..6).toSet() else emptySet()
-                        },
+                        checked = uiState.isAllDay,
+                        onCheckedChange = onAllDayChanged,
                         colors = SwitchDefaults.colors(
                             checkedThumbColor = MedTrackOnPrimary,
-                            checkedTrackColor = if (isAllDay) MedTrackTertiary else MedTrackPrimary,
+                            checkedTrackColor = MedTrackTertiary,
                             checkedBorderColor = Color.Transparent,
                             uncheckedThumbColor = MedTrackPrimary,
                             uncheckedTrackColor = MedTrackSecondary,
                             uncheckedBorderColor = MedTrackSecondary
                         ),
-                        modifier = Modifier.scale(0.7f).height(24.dp)
+                        modifier = Modifier
+                            .scale(0.7f)
+                            .height(24.dp)
                     )
                 }
             }
 
             Spacer(Modifier.height(8.dp))
 
-            // Day Selector
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(48.dp)
-                    .border(1.dp, MedTrackPrimary, RoundedCornerShape(12.dp))
+                    .border(
+                        1.dp,
+                        MedTrackPrimary,
+                        RoundedCornerShape(12.dp)
+                    )
                     .padding(horizontal = 4.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 weekDays.forEachIndexed { index, day ->
-                    val isSelected = index in selectedDays
+                    val isSelected = index in uiState.selectedDays
+
                     Box(
                         modifier = Modifier
                             .size(32.dp)
                             .clip(CircleShape)
-                            .then(if (isSelected) Modifier.background(MedTrackSecondary).border(1.dp, MedTrackPrimary, CircleShape) else Modifier)
+                            .then(
+                                if (isSelected) {
+                                    Modifier
+                                        .background(MedTrackSecondary)
+                                        .border(
+                                            1.dp,
+                                            MedTrackPrimary,
+                                            CircleShape
+                                        )
+                                } else {
+                                    Modifier
+                                }
+                            )
                             .clickable {
-                                selectedDays = if (isSelected) selectedDays - index else selectedDays + index
-                                isAllDay = selectedDays.size == 7
+                                onDayToggled(index)
                             },
                         contentAlignment = Alignment.Center
                     ) {
@@ -263,45 +323,90 @@ fun AddScheduleScreen(
                             text = day,
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Medium,
-                            color = if (isSelected) MedTrackTertiary else MedTrackPrimary
+                            color = if (isSelected) {
+                                MedTrackTertiary
+                            } else {
+                                MedTrackPrimary
+                            }
                         )
                     }
                 }
             }
 
+            ScheduleErrorText(uiState.daysError)
+
             Spacer(Modifier.height(20.dp))
 
-            // Frequency
             FormLabel("Frequency (Times a day)")
             Spacer(Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                StepperButton(text = "−", enabled = frequencyCount > 1, onClick = { updateFrequency(frequencyCount - 1) })
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                StepperButton(
+                    text = "−",
+                    enabled = uiState.frequency > 1,
+                    onClick = {
+                        onFrequencyChanged(
+                            (uiState.frequency - 1).coerceAtLeast(1)
+                        )
+                    }
+                )
+
                 BasicTextField(
-                    value = frequency,
+                    value = if (uiState.frequency == 0) {
+                        ""
+                    } else {
+                        uiState.frequency.toString()
+                    },
                     onValueChange = { input ->
-                        if (input.isEmpty() || (input.all { it.isDigit() } && input.length <= 2)) {
-                            frequency = input
-                            input.toIntOrNull()?.let { updateFrequency(it) }
+                        when {
+                            input.isEmpty() -> onFrequencyChanged(0)
+
+                            input.length <= 2 &&
+                                    input.all { it.isDigit() } -> {
+                                input.toIntOrNull()
+                                    ?.takeIf { it in 0..12 }
+                                    ?.let(onFrequencyChanged)
+                            }
                         }
                     },
                     modifier = Modifier.width(32.dp),
-                    textStyle = TextStyle(fontSize = 16.sp, color = MedTrackTertiary, fontWeight = FontWeight.SemiBold, textAlign = TextAlign.Center),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    textStyle = TextStyle(
+                        fontSize = 16.sp,
+                        color = MedTrackTertiary,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Number
+                    ),
                     singleLine = true
                 )
-                StepperButton(text = "+", enabled = frequencyCount < 12, filled = true, onClick = { updateFrequency(frequencyCount + 1) })
+
+                StepperButton(
+                    text = "+",
+                    enabled = uiState.frequency < 12,
+                    filled = true,
+                    onClick = {
+                        onFrequencyChanged(
+                            (uiState.frequency + 1).coerceAtMost(12)
+                        )
+                    }
+                )
             }
 
             Spacer(Modifier.height(24.dp))
 
-            // Reminder Times
             FormLabel("Reminder Times")
             Spacer(Modifier.height(8.dp))
+
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 repeat(frequencyCount) { index ->
                     ReminderTimeItem(
                         doseNumber = index + 1,
-                        time = reminderTimes.getOrElse(index) { "Set time" },
+                        time = visibleReminderTimes[index],
                         onClick = {
                             editingDoseIndex = index
                             showTimePickerDialog = true
@@ -310,9 +415,10 @@ fun AddScheduleScreen(
                 }
             }
 
+            ScheduleErrorText(uiState.timesError)
+
             Spacer(Modifier.height(24.dp))
 
-            // Preview Block
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -323,10 +429,22 @@ fun AddScheduleScreen(
                 Text(
                     text = buildString {
                         append("Preview: ")
-                        append(medicineName.ifBlank { "Medicine Name" })
-                        if (dosage.isNotBlank()) append(" $dosage")
-                        if (selectedDays.isNotEmpty()) append(" - $previewDays")
-                        append(" | $previewTimes")
+                        append(
+                            uiState.medicineName.ifBlank {
+                                "Medicine Name"
+                            }
+                        )
+
+                        if (uiState.dosage.isNotBlank()) {
+                            append(" ${uiState.dosage}")
+                        }
+
+                        if (uiState.selectedDays.isNotEmpty()) {
+                            append(" - $previewDays")
+                        }
+
+                        append(" | ")
+                        append(visibleReminderTimes.joinToString(", "))
                     },
                     color = MedTrackTertiary,
                     fontSize = 13.sp,
@@ -334,140 +452,241 @@ fun AddScheduleScreen(
                 )
             }
 
+            ScheduleErrorText(uiState.errorMessage)
+
             Spacer(Modifier.height(16.dp))
 
-            // Save Button
             Button(
                 onClick = onSaveSchedule,
-                enabled = medicineName.isNotBlank() && dosage.isNotBlank() && selectedDosageForm.isNotBlank() && selectedDays.isNotEmpty(),
-                modifier = Modifier.fillMaxWidth().height(44.dp),
+                enabled = !uiState.isSaving && !uiState.isSaved,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(44.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MedTrackPrimary,
                     contentColor = MedTrackOnPrimary,
-                    disabledContainerColor = MedTrackPrimary.copy(alpha = 0.45f),
+                    disabledContainerColor =
+                        MedTrackPrimary.copy(alpha = 0.45f),
                     disabledContentColor = MedTrackOnPrimary
                 )
             ) {
-                Text(text = "Save Schedule", fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    text = if (uiState.isSaving) {
+                        "Saving..."
+                    } else {
+                        "Save Schedule"
+                    },
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium
+                )
             }
+
             Spacer(Modifier.height(24.dp))
         }
     }
 
-    // Dialog Time
     if (showTimePickerDialog) {
         CustomTimePickerDialog(
-            onDismiss = { showTimePickerDialog = false },
+            onDismiss = {
+                showTimePickerDialog = false
+            },
             onTimeSelected = { hour, minute ->
-                val formattedTime = String.format("%02d:%02d", hour, minute)
-                val mutableList = reminderTimes.toMutableList()
-                if (editingDoseIndex in mutableList.indices) {
-                    mutableList[editingDoseIndex] = formattedTime
-                    reminderTimes = mutableList
+                val formattedTime = "%02d:%02d".format(hour, minute)
+
+                if (editingDoseIndex >= 0) {
+                    onReminderTimeChanged(
+                        editingDoseIndex,
+                        formattedTime
+                    )
                 }
+
                 showTimePickerDialog = false
             }
         )
     }
 }
 
-
 @Composable
-private fun FormLabel(text: String) {
-    Text(text = text, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = MedTrackTertiary)
-}
-
-@Composable
-private fun ScheduleTextField(value: String, onValueChange: (String) -> Unit, placeholder: String) {
-    Box(
-        modifier = Modifier.fillMaxWidth().height(44.dp).border(1.dp, MedTrackPrimary, RoundedCornerShape(12.dp)).padding(horizontal = 12.dp),
-        contentAlignment = Alignment.CenterStart
-    ) {
-        if (value.isEmpty()) {
-            Text(text = placeholder, color = MedtrackPlaceholder, fontSize = 13.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        }
-        BasicTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.fillMaxWidth(),
-            textStyle = TextStyle(fontSize = 14.sp, color = MedTrackTertiary),
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+private fun ScheduleErrorText(message: String?) {
+    if (message != null) {
+        Text(
+            text = message,
+            modifier = Modifier.padding(top = 4.dp),
+            color = MaterialTheme.colorScheme.error,
+            style = MaterialTheme.typography.bodySmall
         )
     }
 }
 
 @Composable
-private fun StepperButton(text: String, enabled: Boolean, filled: Boolean = false, onClick: () -> Unit) {
+private fun FormLabel(text: String) {
+    Text(
+        text = text,
+        fontSize = 14.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = MedTrackTertiary
+    )
+}
+
+@Composable
+private fun ScheduleTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String
+) {
     Box(
         modifier = Modifier
-            .size(32.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .background(if (filled) MedTrackPrimary else Color.Transparent)
-            .border(if (filled) BorderStroke(0.dp, Color.Transparent) else BorderStroke(1.dp, MedTrackPrimary), RoundedCornerShape(8.dp))
-            .clickable(enabled = enabled) { onClick() },
-        contentAlignment = Alignment.Center
+            .fillMaxWidth()
+            .height(44.dp)
+            .border(
+                1.dp,
+                MedTrackPrimary,
+                RoundedCornerShape(12.dp)
+            )
+            .padding(horizontal = 12.dp),
+        contentAlignment = Alignment.CenterStart
     ) {
-        Text(text = text, fontSize = 18.sp, color = if (filled) MedTrackOnPrimary else MedTrackPrimary, fontWeight = FontWeight.Medium, textAlign = TextAlign.Center)
+        if (value.isEmpty()) {
+            Text(
+                text = placeholder,
+                color = MedtrackPlaceholder,
+                fontSize = 13.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            textStyle = TextStyle(
+                fontSize = 14.sp,
+                color = MedTrackTertiary
+            ),
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text
+            )
+        )
     }
 }
 
 @Composable
-private fun ReminderTimeItem(doseNumber: Int, time: String, onClick: () -> Unit) {
+private fun StepperButton(
+    text: String,
+    enabled: Boolean,
+    filled: Boolean = false,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(32.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                if (filled) MedTrackPrimary else Color.Transparent
+            )
+            .border(
+                if (filled) {
+                    BorderStroke(0.dp, Color.Transparent)
+                } else {
+                    BorderStroke(1.dp, MedTrackPrimary)
+                },
+                RoundedCornerShape(8.dp)
+            )
+            .clickable(
+                enabled = enabled,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 18.sp,
+            color = if (filled) {
+                MedTrackOnPrimary
+            } else {
+                MedTrackPrimary
+            },
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
+@Composable
+private fun ReminderTimeItem(
+    doseNumber: Int,
+    time: String,
+    onClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(44.dp)
             .clip(RoundedCornerShape(12.dp))
-            .border(1.dp, MedTrackPrimary, RoundedCornerShape(12.dp))
+            .border(
+                1.dp,
+                MedTrackPrimary,
+                RoundedCornerShape(12.dp)
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = "Dose $doseNumber |", fontSize = 14.sp, color = MedTrackTertiary, fontWeight = FontWeight.SemiBold)
+        Text(
+            text = "Dose $doseNumber |",
+            fontSize = 14.sp,
+            color = MedTrackTertiary,
+            fontWeight = FontWeight.SemiBold
+        )
+
         Spacer(Modifier.width(6.dp))
-        Text(text = time, fontSize = 14.sp, color = if (time == "Set time") MedtrackPlaceholder else MedTrackTertiary, fontWeight = FontWeight.SemiBold)
+
+        Text(
+            text = time,
+            fontSize = 14.sp,
+            color = if (time == "Set time") {
+                MedtrackPlaceholder
+            } else {
+                MedTrackTertiary
+            },
+            fontWeight = FontWeight.SemiBold
+        )
     }
 }
 
-// Time Picker
-// Time Picker
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomTimePickerDialog(
     onDismiss: () -> Unit,
     onTimeSelected: (Int, Int) -> Unit
 ) {
-    // State utama
     var selectedHour by remember { mutableStateOf(6) }
     var selectedMinute by remember { mutableStateOf(0) }
-
-    // State untuk memicu fokus pindah ke menit
     var forceMinuteFocus by remember { mutableStateOf(false) }
-
-    // Update Hour & minute (sync)
-    fun updateHour(newHour: Int) {
-        selectedHour = newHour
-    }
-    fun updateMinute(newMinute: Int) {
-        selectedMinute = newMinute
-    }
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = RoundedCornerShape(24.dp),
             color = MedTrackBackground,
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Set Time", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = MedTrackTertiary)
+                Text(
+                    text = "Set Time",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MedTrackTertiary
+                )
+
                 Spacer(Modifier.height(24.dp))
 
-                // Wheel Picker Row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -475,14 +694,12 @@ fun CustomTimePickerDialog(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Hour picker
                     WheelPicker(
-                        items = (0..23).map { String.format("%02d", it) },
+                        items = (0..23).map { "%02d".format(it) },
                         initialIndex = selectedHour,
-                        onItemSelected = { updateHour(it) },
+                        onItemSelected = { selectedHour = it },
                         isHour = true,
                         onInputComplete = {
-                            // Saat jam selesai diinput, paksa fokus ke menit
                             forceMinuteFocus = true
                         },
                         modifier = Modifier.weight(1f)
@@ -496,15 +713,13 @@ fun CustomTimePickerDialog(
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
 
-                    // Minute picker
                     WheelPicker(
-                        items = (0..59).map { String.format("%02d", it) },
+                        items = (0..59).map { "%02d".format(it) },
                         initialIndex = selectedMinute,
-                        onItemSelected = { updateMinute(it) },
+                        onItemSelected = { selectedMinute = it },
                         isHour = false,
                         forceFocus = forceMinuteFocus,
                         onInputComplete = {
-                            // Reset flag jika user sudah di menit
                             forceMinuteFocus = false
                         },
                         modifier = Modifier.weight(1f)
@@ -513,21 +728,34 @@ fun CustomTimePickerDialog(
 
                 Spacer(Modifier.height(32.dp))
 
-                // Cancel & Add Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel", color = MedTrackPrimary, fontSize = 14.sp)
+                        Text(
+                            text = "Cancel",
+                            color = MedTrackPrimary,
+                            fontSize = 14.sp
+                        )
                     }
+
                     Spacer(Modifier.width(8.dp))
+
                     Button(
-                        onClick = { onTimeSelected(selectedHour, selectedMinute) },
-                        colors = ButtonDefaults.buttonColors(containerColor = MedTrackPrimary),
+                        onClick = {
+                            onTimeSelected(selectedHour, selectedMinute)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MedTrackPrimary
+                        ),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Text("Add", color = MedTrackOnPrimary, fontSize = 14.sp)
+                        Text(
+                            text = "Add",
+                            color = MedTrackOnPrimary,
+                            fontSize = 14.sp
+                        )
                     }
                 }
             }
@@ -535,7 +763,6 @@ fun CustomTimePickerDialog(
     }
 }
 
-// Wheel Time Picker
 @Composable
 fun WheelPicker(
     items: List<String>,
@@ -547,42 +774,45 @@ fun WheelPicker(
     modifier: Modifier = Modifier
 ) {
     val itemHeight = 48.dp
-
     val listState = rememberLazyListState(
         initialFirstVisibleItemIndex = initialIndex
     )
-
     val coroutineScope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
-    val snapFlingBehavior = rememberSnapFlingBehavior(lazyListState = listState)
+    val snapFlingBehavior = rememberSnapFlingBehavior(
+        lazyListState = listState
+    )
     val context = LocalContext.current
 
     var isEditing by remember { mutableStateOf(false) }
     var manualInput by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
 
-    // Efek jika forceFocus diubah menjadi true dari luar (dari Hours ke Minutes)
     LaunchedEffect(forceFocus) {
         if (forceFocus && !isEditing) {
             isEditing = true
             manualInput = ""
-            kotlinx.coroutines.delay(50) // Delay agar keyboard tidak sempat turun
+            kotlinx.coroutines.delay(50)
             focusRequester.requestFocus()
             keyboardController?.show()
         }
     }
 
-    // Sinkronisasi jika nilai berubah dari luar
     LaunchedEffect(initialIndex) {
         if (!isEditing) {
-            listState.scrollToItem(initialIndex.coerceIn(0, items.lastIndex))
+            listState.scrollToItem(
+                initialIndex.coerceIn(0, items.lastIndex)
+            )
         }
     }
 
-    // Update state ketika wheel selesai bergeser
-    LaunchedEffect(listState.isScrollInProgress, listState.firstVisibleItemIndex) {
+    LaunchedEffect(
+        listState.isScrollInProgress,
+        listState.firstVisibleItemIndex
+    ) {
         if (!listState.isScrollInProgress && !isEditing) {
-            val selectedIndex = listState.firstVisibleItemIndex.coerceIn(0, items.lastIndex)
+            val selectedIndex = listState.firstVisibleItemIndex
+                .coerceIn(0, items.lastIndex)
             onItemSelected(selectedIndex)
         }
     }
@@ -594,31 +824,31 @@ fun WheelPicker(
     }
 
     fun commitManualInput() {
-        val parsedValue = manualInput.toIntOrNull()
+        val parsedValue = manualInput.toIntOrNull() ?: return
 
-        if (parsedValue != null) {
-            if (isHour && parsedValue > 23) {
-                Toast.makeText(context, "Invalid value entered.", Toast.LENGTH_SHORT).show()
-                manualInput = manualInput.dropLast(1)
-                return
-            }
+        if (isHour && parsedValue > 23) {
+            Toast.makeText(
+                context,
+                "Invalid value entered.",
+                Toast.LENGTH_SHORT
+            ).show()
+            manualInput = manualInput.dropLast(1)
+            return
+        }
 
-            var finalValue = parsedValue
-            if (!isHour && parsedValue > 59) {
-                finalValue = parsedValue % 10
-            }
+        val finalValue = if (!isHour && parsedValue > 59) {
+            parsedValue % 10
+        } else {
+            parsedValue
+        }
 
-            if (finalValue in items.indices) {
-                coroutineScope.launch {
-                    listState.scrollToItem(finalValue)
-                    onItemSelected(finalValue)
-
-                    isEditing = false
-                    manualInput = ""
-
-                    // JANGAN panggil keyboardController?.hide() di sini.
-                    onInputComplete()
-                }
+        if (finalValue in items.indices) {
+            coroutineScope.launch {
+                listState.scrollToItem(finalValue)
+                onItemSelected(finalValue)
+                isEditing = false
+                manualInput = ""
+                onInputComplete()
             }
         }
     }
@@ -629,49 +859,61 @@ fun WheelPicker(
             .height(itemHeight * 3),
         contentAlignment = Alignment.Center
     ) {
-        // Highlight
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(itemHeight)
-                .background(MedTrackSecondary, RoundedCornerShape(12.dp))
+                .background(
+                    MedTrackSecondary,
+                    RoundedCornerShape(12.dp)
+                )
         )
 
-        // Wheel list
         LazyColumn(
             state = listState,
             flingBehavior = snapFlingBehavior,
             modifier = Modifier
                 .fillMaxWidth()
                 .fillMaxHeight()
-                .clickable { startEditing() },
+                .clickable(onClick = ::startEditing),
             contentPadding = PaddingValues(vertical = itemHeight)
         ) {
             items(items.size) { index ->
-                val isSelected = index == listState.firstVisibleItemIndex
-                val distance = abs(index - listState.firstVisibleItemIndex)
+                val isSelected =
+                    index == listState.firstVisibleItemIndex
+                val distance =
+                    abs(index - listState.firstVisibleItemIndex)
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(itemHeight)
                         .graphicsLayer {
-                            rotationX = (index - listState.firstVisibleItemIndex) * 35f
-                            alpha = 1f - (distance * 0.3f).coerceIn(0f, 1f)
+                            rotationX =
+                                (index - listState.firstVisibleItemIndex) * 35f
+                            alpha =
+                                1f - (distance * 0.3f).coerceIn(0f, 1f)
                         },
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = items[index],
                         fontSize = if (isSelected) 32.sp else 24.sp,
-                        color = if (isSelected) MedTrackTertiary else MedtrackPlaceholder.copy(alpha = 0.4f),
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                        color = if (isSelected) {
+                            MedTrackTertiary
+                        } else {
+                            MedtrackPlaceholder.copy(alpha = 0.4f)
+                        },
+                        fontWeight = if (isSelected) {
+                            FontWeight.Bold
+                        } else {
+                            FontWeight.Normal
+                        }
                     )
                 }
             }
         }
 
-        // Input manual
         if (isEditing) {
             LaunchedEffect(Unit) {
                 focusRequester.requestFocus()
@@ -680,59 +922,57 @@ fun WheelPicker(
             BasicTextField(
                 value = manualInput,
                 onValueChange = { newValue ->
-                    // Jika newValue kosong (dihapus oleh user), langsung update state
                     if (newValue.isEmpty()) {
                         manualInput = ""
                         return@BasicTextField
                     }
 
-                    // Hanya menerima maksimal 2 digit angka
-                    if (newValue.length <= 2 && newValue.all { it.isDigit() }) {
+                    if (
+                        newValue.length <= 2 &&
+                        newValue.all { it.isDigit() }
+                    ) {
                         if (isHour) {
                             if (newValue.length == 1) {
-                                val singleDigit = newValue.toIntOrNull()
-                                // Jika angka 3-9, langsung commit
-                                if (singleDigit != null && singleDigit in 3..9) {
+                                val digit = newValue.toIntOrNull()
+
+                                if (digit != null && digit in 3..9) {
                                     manualInput = newValue
                                     commitManualInput()
                                 } else {
-                                    // Jika 0-2, tunggu digit kedua
                                     manualInput = newValue
                                 }
-                            } else if (newValue.length == 2) {
-                                val parsedValue = newValue.toIntOrNull()
-                                if (parsedValue != null && parsedValue > 23) {
-                                    Toast.makeText(context, "Invalid value entered.", Toast.LENGTH_SHORT).show()
-                                    // Jangan update manualInput (tolak digit kedua)
+                            } else {
+                                val parsed = newValue.toIntOrNull()
+
+                                if (parsed != null && parsed > 23) {
+                                    Toast.makeText(
+                                        context,
+                                        "Invalid value entered.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 } else {
                                     manualInput = newValue
                                     commitManualInput()
                                 }
                             }
+                        } else if (newValue.length == 1) {
+                            val digit = newValue.toIntOrNull()
+
+                            if (digit != null && digit in 0..5) {
+                                manualInput = newValue
+                            } else if (digit != null && digit in 6..9) {
+                                manualInput = "%02d".format(digit)
+                                commitManualInput()
+                            }
                         } else {
-                            if (newValue.length == 1) {
-                                val singleDigit = newValue.toIntOrNull()
-                                if (singleDigit != null) {
-                                    if (singleDigit in 0..5) {
-                                        // Angka 0-5: Tampilkan saja, tunggu digit kedua
-                                        manualInput = newValue
-                                    } else if (singleDigit in 6..9) {
-                                        // Angka 6-9: Langsung tambahkan 0 di depan, lalu commit
-                                        manualInput = String.format("%02d", singleDigit)
-                                        commitManualInput()
-                                    }
-                                }
-                            } else if (newValue.length == 2) {
-                                val parsedValue = newValue.toIntOrNull()
-                                if (parsedValue != null) {
-                                    if (parsedValue > 59) {
-                                        manualInput = (parsedValue % 10).toString()
-                                        commitManualInput()
-                                    } else {
-                                        manualInput = newValue
-                                        commitManualInput()
-                                    }
-                                }
+                            val parsed = newValue.toIntOrNull()
+
+                            if (parsed != null && parsed > 59) {
+                                manualInput = (parsed % 10).toString()
+                                commitManualInput()
+                            } else {
+                                manualInput = newValue
+                                commitManualInput()
                             }
                         }
                     }
@@ -740,7 +980,10 @@ fun WheelPicker(
                 modifier = Modifier
                     .width(72.dp)
                     .height(itemHeight)
-                    .background(MedTrackSecondary, RoundedCornerShape(12.dp))
+                    .background(
+                        MedTrackSecondary,
+                        RoundedCornerShape(12.dp)
+                    )
                     .focusRequester(focusRequester),
                 textStyle = TextStyle(
                     fontSize = 32.sp,
@@ -752,7 +995,9 @@ fun WheelPicker(
                     keyboardType = KeyboardType.Number,
                     imeAction = ImeAction.Done
                 ),
-                keyboardActions = KeyboardActions(onDone = { commitManualInput() }),
+                keyboardActions = KeyboardActions(
+                    onDone = { commitManualInput() }
+                ),
                 singleLine = true,
                 decorationBox = { innerTextField ->
                     Box(
@@ -766,18 +1011,11 @@ fun WheelPicker(
                                 color = MedtrackPlaceholder.copy(alpha = 0.5f)
                             )
                         }
+
                         innerTextField()
                     }
                 }
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-private fun AddScheduleScreenPreview() {
-    MedTrackTheme {
-        AddScheduleScreen()
     }
 }

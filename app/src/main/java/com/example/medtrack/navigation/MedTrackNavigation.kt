@@ -66,6 +66,10 @@ import com.example.medtrack.ui.screens.patients.PatientVerifyAgeScreen
 import com.example.medtrack.ui.screens.patients.EditPatientProfileScreen
 import com.example.medtrack.ui.screens.patients.PatientFormData
 import com.example.medtrack.ui.screens.patients.AddScheduleScreen
+import com.example.medtrack.ui.screens.patients.AddScheduleViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.medtrack.ui.screens.shared.CaregiverSharedViewModel
 
 @Composable
 fun MedTrackNavigation() {
@@ -284,7 +288,6 @@ private fun MedTrackGraph(
                     }
                 )
 
-                // jika sudah memasukkan token, ke verify age
                 LaunchedEffect(state.showAgeDialog) {
                     if (state.showAgeDialog) {
                         navController.navigate(
@@ -303,12 +306,19 @@ private fun MedTrackGraph(
                     onBackClick = { navController.popBackStack() }
                 )
             }
+
             composable(NavRoute.Patient.route) {
+                val sharingRepository = application.sharingRepository
+
                 val patientListModel: PatientListViewModel = viewModel(
                     key = "patient-list-${user.id}",
-                    factory = remember(application.patientRepository) {
+                    factory = remember(
+                        application.patientRepository,
+                        sharingRepository
+                    ) {
                         PatientListViewModel.Factory(
-                            application.patientRepository
+                            repository = application.patientRepository,
+                            sharingRepository = sharingRepository
                         )
                     }
                 )
@@ -336,7 +346,9 @@ private fun MedTrackGraph(
                     },
 
                     onPatientClick = { patientId ->
-                        navController.navigate(NavRoute.PatientDetail.createRoute(patientId))
+                        navController.navigate(
+                            NavRoute.PatientDetail.createRoute(patientId)
+                        )
                     },
 
                     state = patientListState
@@ -355,7 +367,6 @@ private fun MedTrackGraph(
                 val addPatientState by addPatientModel.uiState
                     .collectAsStateWithLifecycle()
 
-                // menampilkan form add patient
                 AddPatientScreen(
                     uiState = addPatientState,
                     onNameChanged = addPatientModel::onNameChanged,
@@ -366,18 +377,18 @@ private fun MedTrackGraph(
                     onCountryCodeChanged = addPatientModel::onCountryCodeChanged,
                     onPhoneChanged = addPatientModel::onPhoneChanged,
                     onMedicalNotesChanged = addPatientModel::onMedicalNotesChanged,
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = {
+                        navController.popBackStack()
+                    },
                     onAddPatient = addPatientModel::submit
                 )
 
-                // jika berhasil disimpan, state kembali ke halaman patients
                 LaunchedEffect(addPatientState.isSaved) {
                     if (addPatientState.isSaved) {
                         navController.popBackStack()
                     }
                 }
 
-                // menampilkan pesan jika penyimpanan gagal.
                 LaunchedEffect(addPatientState.errorMessage) {
                     addPatientState.errorMessage?.let { message ->
                         Toast.makeText(
@@ -389,14 +400,17 @@ private fun MedTrackGraph(
                 }
             }
 
-            // RUTE PATIENT DETAIL (Diperbarui untuk navigasi ke Edit)
             composable(
                 route = NavRoute.PatientDetail.route,
-                arguments = listOf(navArgument("patientId") { type = NavType.StringType })
+                arguments = listOf(
+                    navArgument("patientId") {
+                        type = NavType.StringType
+                    }
+                )
             ) { backStackEntry ->
-                val patientId = backStackEntry.arguments?.getString("patientId")
+                val patientId =
+                    backStackEntry.arguments?.getString("patientId")
 
-                // Data dummy (Nanti diambil dari ViewModel berdasarkan patientId)
                 PatientDetailsScreen(
                     patient = PatientDetailsData(
                         name = "Anna",
@@ -408,7 +422,11 @@ private fun MedTrackGraph(
                     ),
                     onBackClick = { navController.popBackStack() },
                     onEditProfileClick = {
-                        navController.navigate(NavRoute.EditPatientProfile.createRoute(patientId ?: ""))
+                        navController.navigate(
+                            NavRoute.EditPatientProfile.createRoute(
+                                patientId ?: ""
+                            )
+                        )
                     },
                     onAddScheduleClick = {
                         navController.navigate(
@@ -418,7 +436,7 @@ private fun MedTrackGraph(
                 )
             }
 
-            // ROUTE ADD SCHEDULE
+            // RUTE ADD SCHEDULE
             composable(
                 route = NavRoute.AddSchedule.route,
                 arguments = listOf(
@@ -427,28 +445,69 @@ private fun MedTrackGraph(
                     }
                 )
             ) { backStackEntry ->
+                val patientId =
+                    backStackEntry.arguments?.getString("patientId")
 
-                // Mengambil ID pasien dari navigation argument.
-                val patientId = backStackEntry.arguments?.getString("patientId")
-
-                AddScheduleScreen(
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
-                    onSaveSchedule = {
-                        // TODO: Simpan jadwal berdasarkan patientId.
-                        // Untuk sementara, kembali ke Patient Details.
+                if (patientId.isNullOrBlank()) {
+                    LaunchedEffect(Unit) {
                         navController.popBackStack()
                     }
-                )
+                } else {
+                    val scheduleRepository = application.patientScheduleRepository
+
+                    val model: AddScheduleViewModel = viewModel(
+                        key = "add-schedule-$patientId",
+                        factory = remember(patientId, scheduleRepository) {
+                            AddScheduleViewModel.Factory(
+                                patientId = patientId,
+                                repository = scheduleRepository
+                            )
+                        }
+                    )
+
+                    val scheduleState by model.uiState.collectAsStateWithLifecycle()
+
+                    LaunchedEffect(scheduleState.isSaved) {
+                        if (scheduleState.isSaved) {
+                            navController.popBackStack()
+                        }
+                    }
+
+                    LaunchedEffect(scheduleState.errorMessage) {
+                        scheduleState.errorMessage?.let { message ->
+                            Toast.makeText(
+                                context,
+                                message,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+
+                    AddScheduleScreen(
+                        uiState = scheduleState,
+                        onMedicineNameChanged = model::onMedicineNameChanged,
+                        onDosageChanged = model::onDosageChanged,
+                        onDosageFormChanged = model::onDosageFormChanged,
+                        onDayToggled = model::onDayToggled,
+                        onAllDayChanged = model::onAllDayChanged,
+                        onFrequencyChanged = model::onFrequencyChanged,
+                        onReminderTimeChanged = model::onReminderTimeChanged,
+                        onBackClick = {
+                            navController.popBackStack()
+                        },
+                        onSaveSchedule = model::save
+                    )
+                }
             }
 
-            // RUTE EDIT PATIENT PROFILE (BARU)
             composable(
                 route = NavRoute.EditPatientProfile.route,
-                arguments = listOf(navArgument("patientId") { type = NavType.StringType })
-            ) { backStackEntry ->
-                // Data dummy (Nanti diambil dari ViewModel berdasarkan patientId)
+                arguments = listOf(
+                    navArgument("patientId") {
+                        type = NavType.StringType
+                    }
+                )
+            ) {
                 val dummyInitialData = PatientFormData(
                     name = "Anna",
                     gender = "Female",
@@ -461,16 +520,59 @@ private fun MedTrackGraph(
                 EditPatientProfileScreen(
                     initialData = dummyInitialData,
                     onBackClick = { navController.popBackStack() },
-                    onSave = { updatedData ->
-                        // TODO: Panggil ViewModel untuk update data ke backend/database
-                        // Jika berhasil, kembali ke halaman detail
+                    onSave = {
                         navController.popBackStack()
                     }
                 )
             }
 
             composable(NavRoute.CaregiverShared.route) {
-                CaregiverSharedScreen(onItemSelected = onCaregiverTab)
+                val sharingRepository = application.sharingRepository
+
+                val model: CaregiverSharedViewModel = viewModel(
+                    factory = remember(sharingRepository) {
+                        object : ViewModelProvider.Factory {
+                            override fun <T : ViewModel> create(
+                                modelClass: Class<T>
+                            ): T {
+                                require(
+                                    modelClass.isAssignableFrom(
+                                        CaregiverSharedViewModel::class.java
+                                    )
+                                )
+
+                                @Suppress("UNCHECKED_CAST")
+                                return CaregiverSharedViewModel(
+                                    sharingRepository
+                                ) as T
+                            }
+                        }
+                    }
+                )
+
+                val sharingState by model.uiState.collectAsStateWithLifecycle()
+
+                CaregiverSharedScreen(
+                    uiState = sharingState,
+                    onSearchQueryChanged = model::onSearchQueryChanged,
+                    onTabSelected = model::onTabSelected,
+                    onRefresh = model::refresh,
+                    onSendConnectionRequest = model::sendConnectionRequest,
+                    onAcceptConnectionRequest = model::acceptConnectionRequest,
+                    onDeclineConnectionRequest = model::declineConnectionRequest,
+                    onSharePatient = model::sharePatient,
+                    onItemSelected = onCaregiverTab
+                )
+
+                LaunchedEffect(sharingState.errorMessage) {
+                    sharingState.errorMessage?.let { message ->
+                        Toast.makeText(
+                            context,
+                            message,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
             }
 
             composable(NavRoute.CaregiverHome.route) {
@@ -496,7 +598,8 @@ private fun MedTrackGraph(
                     LogoutConfirmDialog(
                         onCancel = model::cancelLogout,
                         onConfirm = model::logout,
-                        isLoggingOut = state.isLoggingOut || state.isLoggedOut
+                        isLoggingOut =
+                            state.isLoggingOut || state.isLoggedOut
                     )
                 }
 
@@ -519,7 +622,6 @@ private fun MedTrackGraph(
                         }
                     },
                     onLogoutClick = model::requestLogout,
-
                     onEditProfileClick = {
                         if (!state.isLoggingOut && !state.isLoggedOut) {
                             navController.navigate(
@@ -529,11 +631,11 @@ private fun MedTrackGraph(
                             }
                         }
                     },
-                    canInteract = !state.isLoggingOut && !state.isLoggedOut
+                    canInteract =
+                        !state.isLoggingOut && !state.isLoggedOut
                 )
             }
         } else {
-            // Rute Verifikasi Umur Pasien
             composable(NavRoute.PatientVerifyAge.route) {
                 val model: PatientLoginViewModel = viewModel(
                     factory = remember(authRepository) {
@@ -551,15 +653,11 @@ private fun MedTrackGraph(
                         navController.popBackStack()
                     },
                     onVerifySuccess = { age ->
-                        // simpan umur
                         model.onAgeChanged(age)
-
-                        // kirim kode dan umur ke backend
                         model.login()
                     }
                 )
 
-                // menampilkan pesan jika verifikasi gagal.
                 LaunchedEffect(state.loginError) {
                     state.loginError?.let { message ->
                         Toast.makeText(
@@ -572,7 +670,9 @@ private fun MedTrackGraph(
             }
 
             composable(NavRoute.PatientShared.route) {
-                PatientSharedScreen(onItemSelected = onPatientTab)
+                PatientSharedScreen(
+                    onItemSelected = onPatientTab
+                )
             }
 
             composable(NavRoute.PatientHome.route) {
@@ -594,16 +694,15 @@ private fun MedTrackGraph(
 
                 val state by model.uiState.collectAsStateWithLifecycle()
 
-                // Menampilkan popup konfirmasi logout.
                 if (state.showLogoutDialog) {
                     LogoutConfirmDialog(
                         onCancel = model::cancelLogout,
                         onConfirm = model::logout,
-                        isLoggingOut = state.isLoggingOut || state.isLoggedOut
+                        isLoggingOut =
+                            state.isLoggingOut || state.isLoggedOut
                     )
                 }
 
-                // Menampilkan pesan jika logout gagal.
                 LaunchedEffect(state.logoutError) {
                     state.logoutError?.let { message ->
                         Toast.makeText(
