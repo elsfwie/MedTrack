@@ -115,13 +115,21 @@ fun CaregiverPatientsScreen(
     val searchBorder = Color(0xFFB9DCDD)
     val focusManager = LocalFocusManager.current
 
-    val visiblePatients = state.patients.filter { patient ->
-        selectedFilter != PatientFilter.SHARED_WITH_ME &&
-                patient.name.contains(
-                    other = searchQuery.trim(),
-                    ignoreCase = true
-                )
-    }
+    val visiblePatients = when (selectedFilter) {
+        PatientFilter.ALL ->
+            state.patients + state.sharedPatients
+
+        PatientFilter.MY_PATIENT ->
+            state.patients
+
+        PatientFilter.SHARED_WITH_ME ->
+            state.sharedPatients
+    }.filter { patient ->
+        patient.name.contains(
+            other = searchQuery.trim(),
+            ignoreCase = true
+        )
+    }.distinctBy { it.id }
 
     // simpan ID pasien yang sedang dipilih
     var selectedPatientIds by rememberSaveable { mutableStateOf<Set<String>>(emptySet()) }
@@ -578,27 +586,28 @@ fun CaregiverPatientsScreen(
                                 items = visiblePatients,
                                 key = { it.id }
                             ) { patient ->
-
                                 PatientGridCard(
                                     patient = patient,
                                     isSelected = patient.id in selectedPatientIds,
                                     isSelectionMode = isSelectionMode,
-                                    // sementara belum ada
-                                    sharedBy = null,
+                                    sharedBy = patient.sharedBy,
                                     onClick = {
-                                        if (isSelectionMode) {
-                                            togglePatientSelection(patient.id)
-                                        } else {
-                                            // Panggil navigasi dengan membawa ID Pasien
-                                            onPatientClick(patient.id)
+                                        if (patient.isOwned) {
+                                            if (isSelectionMode) {
+                                                togglePatientSelection(patient.id)
+                                            } else {
+                                                onPatientClick(patient.id)
+                                            }
                                         }
                                     },
                                     onLongClick = {
-                                        if (!isSelectionMode) {
-                                            isSelectionMode = true
-                                            selectedPatientIds = setOf(patient.id)
-                                        } else {
-                                            togglePatientSelection(patient.id)
+                                        if (patient.isOwned) {
+                                            if (!isSelectionMode) {
+                                                isSelectionMode = true
+                                                selectedPatientIds = setOf(patient.id)
+                                            } else {
+                                                togglePatientSelection(patient.id)
+                                            }
                                         }
                                     }
                                 )
@@ -719,7 +728,7 @@ fun CaregiverPatientsScreen(
 
 @Composable
 fun PatientGridCard(
-    patient: Patient,
+    patient: PatientListItem,
     isSelected: Boolean,
     isSelectionMode: Boolean,
     sharedBy: String? = null,

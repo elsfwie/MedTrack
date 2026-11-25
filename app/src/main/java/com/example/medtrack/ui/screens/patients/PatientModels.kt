@@ -1,5 +1,7 @@
 package com.example.medtrack.ui.screens.patients
 
+import com.example.medtrack.model.Patient
+import com.example.medtrack.model.sharing.AccessiblePatient
 // Data form patient
 data class PatientFormData(
     val name: String,
@@ -16,6 +18,16 @@ data class CountryCode(
     val flag: String,
     val code: String
 )
+//data list patient
+data class PatientListItem(
+    val id: String,
+    val name: String,
+    val age: Int,
+    val gender: String = "Not specified",
+    val emergencyContact: String?,
+    val sharedBy: String? = null,
+    val isOwned: Boolean
+)
 
 // Daftar negara
 val countryCodes = listOf(
@@ -31,4 +43,22 @@ val countryCodes = listOf(
     CountryCode("Philippines", "🇵🇭", "+63"),
     CountryCode("Thailand", "🇹🇭", "+66"),
     CountryCode("Vietnam", "🇻🇳", "+84")
+)
+
+fun Patient.toPatientListItem() = PatientListItem(
+    id = id,
+    name = name,
+    age = age,
+    gender = gender,
+    emergencyContact = emergencyContact,
+    isOwned = true
+)
+
+fun AccessiblePatient.toPatientListItem() = PatientListItem(
+    id = id,
+    name = name,
+    age = age,
+    emergencyContact = emergencyContact,
+    sharedBy = sharedBy,
+    isOwned = false
 )
